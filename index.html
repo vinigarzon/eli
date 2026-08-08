@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Language Institute · North Central College</title>
+<meta name="description" content="Improve your English. Build your future. Explore ELI programs at North Central College — Naperville, IL.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&family=Roboto+Mono:wght@400;500;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     NCC Brand tokens — Graphic Identity & Messaging Guidelines (Spring 2026)
+     Primary: Pantone 200 C  #c10230 (passes WCAG AA)
+     Accents: Pantone Red 32 #ef4048 · Pantone 635 #a3dce9 · Pantone 7689 #2692c6
+     Neutral: Rich Black #212121
+     Fonts (Google alternatives per guidelines): Roboto, Roboto Mono, Permanent Marker
+     Content is data-driven: edit the JSON in #eli-config (or use admin.html).
+     ============================================================ */
+  :root{
+    --ncc-red:#c10230;
+    --ncc-red-dark:#9b0227;
+    --ncc-red-accent:#ef4048;
+    --ncc-sky:#a3dce9;
+    --ncc-sky-50:#d1eef4;
+    --ncc-blue:#2692c6;
+    --ncc-black:#212121;
+    --paper:#f7f5f2;
+    --card:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    font-family:'Roboto',Arial,sans-serif;
+    background:var(--paper);
+    color:var(--ncc-black);
+    line-height:1.45;
+  }
+  .wrap{max-width:520px;margin:0 auto;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    background:var(--ncc-red);
+    color:#fff;
+    padding:26px 22px 30px;
+    overflow:hidden;
+  }
+  .hero .track{position:absolute;inset:0;opacity:.35;pointer-events:none;}
+  .unit-label{
+    font-family:'Roboto Mono',monospace;
+    font-size:11px;letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--ncc-sky);
+    margin-bottom:8px;
+    position:relative;
+  }
+  h1{
+    font-weight:900;
+    font-size:clamp(23px,6.5vw,30px);
+    line-height:1.08;
+    text-transform:uppercase;
+    letter-spacing:.01em;
+    position:relative;
+  }
+  h1 .hl{background:linear-gradient(0deg, var(--ncc-red-accent) 0 32%, transparent 32%);}
+  .tagline{
+    margin-top:14px;
+    font-size:17px;
+    font-weight:500;
+    line-height:1.3;
+    position:relative;
+  }
+  .tagline .marker{
+    font-family:'Permanent Marker',cursive;
+    font-size:19px;
+    color:var(--ncc-sky);
+  }
+
+  /* ---------- SECTIONS ---------- */
+  .content{padding:4px 20px 30px;}
+  section{margin-top:26px;}
+  .sec-label{
+    display:flex;align-items:center;gap:10px;
+    font-family:'Roboto Mono',monospace;
+    font-size:12px;font-weight:700;
+    letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ncc-red);
+    margin-bottom:6px;
+  }
+  .sec-label::after{
+    content:"";flex:1;height:2px;
+    background:linear-gradient(90deg,var(--ncc-red) 0,transparent 100%);
+    opacity:.25;
+  }
+  .sec-note{font-size:13.5px;color:#5a5a5a;margin-bottom:14px;}
+
+  /* ---------- LINK CARDS ---------- */
+  .links{display:flex;flex-direction:column;gap:12px;}
+  a.card{
+    display:block;
+    background:var(--card);
+    border:1.5px solid #e4dfd9;
+    border-left:5px solid var(--ncc-red);
+    border-radius:12px;
+    padding:15px 18px;
+    text-decoration:none;
+    color:var(--ncc-black);
+    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  a.card:hover, a.card:focus-visible{
+    transform:translateY(-2px);
+    box-shadow:0 8px 22px rgba(33,33,33,.10);
+    border-color:var(--ncc-red);
+  }
+  a.card:active{transform:translateY(0);}
+  .card-title{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    font-weight:700;font-size:16px;
+  }
+  .card-title .arrow{color:var(--ncc-red);font-weight:900;transition:transform .12s ease;flex:none;}
+  a.card:hover .arrow{transform:translateX(4px);}
+  .card-sub{margin-top:3px;font-size:13.5px;color:#6a6a6a;}
+
+  .split{margin-top:12px;display:flex;gap:8px;}
+  .split a{
+    flex:1;text-align:center;
+    font-family:'Roboto Mono',monospace;
+    font-size:12px;font-weight:700;letter-spacing:.03em;
+    color:var(--ncc-red);
+    text-decoration:none;
+    border:1.5px solid var(--ncc-red);
+    border-radius:8px;
+    padding:9px 6px;
+    transition:background .12s ease,color .12s ease;
+  }
+  .split a:hover{background:var(--ncc-red);color:#fff;}
+  .excel-card{
+    background:var(--card);
+    border:1.5px solid #e4dfd9;
+    border-left:5px solid var(--ncc-red);
+    border-radius:12px;
+    padding:15px 18px;
+  }
+  a.card.featured{background:var(--ncc-red);border-color:var(--ncc-red);color:#fff;}
+  a.card.featured .card-sub{color:var(--ncc-sky-50);}
+  a.card.featured .arrow{color:#fff;}
+  a.card.sky{border-left-color:var(--ncc-blue);}
+  a.card.sky .arrow{color:var(--ncc-blue);}
+  a.card.pathfinder{background:var(--ncc-sky-50);border-color:var(--ncc-blue);border-left-width:5px;}
+  a.card.pathfinder .arrow{color:var(--ncc-blue);}
+
+  .note{
+    font-family:'Permanent Marker',cursive;
+    color:var(--ncc-red);
+    font-size:17px;
+    transform:rotate(-1.5deg);
+    margin:26px 4px 0;
+  }
+  .note .u{background:linear-gradient(0deg,var(--ncc-sky) 0 30%,transparent 30%);}
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    margin-top:46px;
+    background:var(--ncc-black);
+    color:#fff;
+    padding:34px 26px 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  .grid-pattern{
+    position:absolute;right:0;top:0;height:100%;width:110px;
+    background-image:
+      linear-gradient(var(--ncc-blue) 1px, transparent 1px),
+      linear-gradient(90deg, var(--ncc-blue) 1px, transparent 1px);
+    background-size:11px 11px;
+    opacity:.35;
+  }
+  footer .f-inner{position:relative;}
+  footer .f-name{font-weight:900;text-transform:uppercase;font-size:15px;letter-spacing:.05em;}
+  footer .f-tag{
+    font-family:'Roboto Mono',monospace;
+    color:var(--ncc-sky);
+    font-size:12px;margin-top:5px;letter-spacing:.06em;
+  }
+  footer .f-line{margin-top:14px;font-size:12.5px;color:#bdbdbd;line-height:1.7;}
+  footer a{color:var(--ncc-sky);text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <svg class="track" viewBox="0 0 520 200" preserveAspectRatio="xMaxYMin slice" aria-hidden="true">
+      <g fill="none" stroke="#ef4048" stroke-width="1.4">
+        <path d="M355,-40 v90 a55,55 0 0 0 110,0 v-90"/>
+        <path d="M370,-40 v90 a40,40 0 0 0 80,0 v-90"/>
+        <path d="M385,-40 v90 a25,25 0 0 0 50,0 v-90"/>
+        <path d="M400,-40 v90 a10,10 0 0 0 20,0 v-90"/>
+      </g>
+    </svg>
+    <div class="unit-label" id="hero-label"></div>
+    <h1 id="hero-title"></h1>
+    <p class="tagline" id="hero-tagline"></p>
+  </header>
+
+  <main class="content" id="main-content"></main>
+
+  <footer>
+    <div class="grid-pattern" aria-hidden="true"></div>
+    <div class="f-inner" id="footer-inner"></div>
+  </footer>
+
+</div>
+
+<!-- ================= EDITABLE CONTENT =================
+     Everything visitors see lives in this JSON.
+     Edit it with admin.html (recommended) or by hand.  -->
+<script type="application/json" id="eli-config">
+{
+  "hero": {
+    "label": "North Central College",
+    "titleLine1": "English Language",
+    "titleLine2": "Institute",
+    "taglineText": "Improve your English. Build your",
+    "taglineMarker": "future."
+  },
+  "sections": [
+    {
+      "label": "Find Your Program",
+      "note": "Three ways to reach your goals — for school, for work, for life in the U.S.",
+      "endnote": "",
+      "links": [
+        {
+          "style": "pathfinder",
+          "title": "Not sure where to start? Find Your Path",
+          "sub": "Answer two quick questions and get a personalized plan.",
+          "url": "https://www.northcentralcollege.edu/admissions/international-undergraduate-applicants/english-language-institute?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links&utm_content=pathfinder",
+          "hidden": false
+        },
+        {
+          "style": "normal",
+          "title": "Intensive English Program",
+          "sub": "Study English for 8–32 weeks to meet personal and professional goals.",
+          "url": "https://www.northcentralcollege.edu/intensive-english-program-iep?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links",
+          "hidden": false
+        },
+        {
+          "style": "normal",
+          "title": "Conditional Admission",
+          "sub": "Study English, then start your undergraduate degree.",
+          "url": "https://www.northcentralcollege.edu/english-language-institute/conditional-admission?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links",
+          "hidden": false
+        },
+        {
+          "style": "excel",
+          "title": "Excel Program",
+          "sub": "Earn university credit while studying academic English.",
+          "url": "",
+          "split": [
+            {"label": "INTERNATIONAL", "url": "https://www.northcentralcollege.edu/excel-program-international-applicants?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links"},
+            {"label": "DOMESTIC (U.S.)", "url": "https://www.northcentralcollege.edu/excel-program-for-domestic-applicants?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links"}
+          ],
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "label": "Plan & Apply",
+      "note": "",
+      "endnote": "",
+      "links": [
+        {
+          "style": "featured",
+          "title": "Ask Us Anything",
+          "sub": "Email the ELI — we answer every message. eli@noctrl.edu",
+          "url": "mailto:eli@noctrl.edu",
+          "hidden": false
+        },
+        {
+          "style": "normal",
+          "title": "How to Apply",
+          "sub": "Application steps for the IEP & Conditional Admission.",
+          "url": "https://www.northcentralcollege.edu/eli/apply-intensive-english-program-conditional-admission?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links",
+          "hidden": false
+        },
+        {
+          "style": "normal",
+          "title": "Apply to Excel",
+          "sub": "Start your degree application on the North Central portal.",
+          "url": "https://portal.northcentralcollege.edu/register/UG",
+          "hidden": false
+        },
+        {
+          "style": "normal",
+          "title": "Next Steps for Accepted Students",
+          "sub": "You're in! Here's everything to do before day one.",
+          "url": "https://www.northcentralcollege.edu/international-undergraduate-applicants/english-language-institute/next-steps?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links",
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "label": "Meet Us",
+      "note": "One team, every step of the way.",
+      "endnote": "",
+      "links": [
+        {
+          "style": "normal",
+          "title": "Meet Our Team",
+          "sub": "The people behind your success.",
+          "url": "https://www.northcentralcollege.edu/english-language-institute-staff?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links",
+          "hidden": false
+        },
+        {
+          "style": "normal",
+          "title": "Alumni Stories",
+          "sub": "Real students. Real degrees. Real futures.",
+          "url": "https://www.northcentralcollege.edu/international-undergraduate-applicants/english-language-institute/alumni-testimonials?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links",
+          "hidden": false
+        },
+        {
+          "style": "sky",
+          "title": "Welcome to North Central",
+          "sub": "Watch our welcome video.",
+          "url": "https://vimeo.com/232709541",
+          "hidden": false
+        },
+        {
+          "style": "sky",
+          "title": "Take a Virtual Campus Tour",
+          "sub": "Explore our campus in Naperville's Historic District.",
+          "url": "https://www.massinteract.com/north-central-college",
+          "hidden": false
+        },
+        {
+          "style": "sky",
+          "title": "Proud Member of EnglishUSA",
+          "sub": "See our listing in the national member directory.",
+          "url": "https://www.englishusa.org/member-directory",
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "label": "Watch & Follow",
+      "note": "",
+      "endnote": "Your future starts here!",
+      "links": [
+        {
+          "style": "normal",
+          "title": "International Admissions on YouTube",
+          "sub": "Student stories, campus life, and what's next.",
+          "url": "https://www.youtube.com/@Intl.NorthCentralNaperville",
+          "hidden": false
+        },
+        {
+          "style": "normal",
+          "title": "Find Us on Facebook",
+          "sub": "Center for Global Education community.",
+          "url": "https://www.facebook.com/ncccenterforglobaleducation/",
+          "hidden": false
+        }
+      ]
+    }
+  ],
+  "footer": {
+    "name": "English Language Institute",
+    "tag": "North Central College · Naperville's University™",
+    "address": "30 N. Brainard St., Naperville, IL",
+    "email": "eli@noctrl.edu",
+    "ctaText": "Explore the full ELI website →",
+    "ctaUrl": "https://www.northcentralcollege.edu/admissions/international-undergraduate-applicants/english-language-institute?utm_source=instagram&utm_medium=bio&utm_campaign=eli_links"
+  }
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+  function esc(s){
+    return String(s==null?"":s)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+  var cfg;
+  try{
+    cfg = JSON.parse(document.getElementById("eli-config").textContent);
+  }catch(e){
+    document.getElementById("main-content").innerHTML =
+      "<p style='padding:30px 0;color:#c10230'>Content configuration error.</p>";
+    return;
+  }
+
+  /* HERO */
+  document.getElementById("hero-label").textContent = cfg.hero.label || "";
+  document.getElementById("hero-title").innerHTML =
+    esc(cfg.hero.titleLine1) + "<br><span class=\"hl\">" + esc(cfg.hero.titleLine2) + "</span>";
+  document.getElementById("hero-tagline").innerHTML =
+    esc(cfg.hero.taglineText) + " <span class=\"marker\">" + esc(cfg.hero.taglineMarker) + "</span>";
+
+  /* SECTIONS */
+  function cardHTML(l){
+    if(l.style === "excel"){
+      var splits = (l.split||[]).map(function(s){
+        return "<a href=\"" + esc(s.url) + "\">" + esc(s.label) + "</a>";
+      }).join("");
+      return "<div class=\"excel-card\">" +
+        "<div class=\"card-title\">" + esc(l.title) + "</div>" +
+        (l.sub ? "<div class=\"card-sub\">" + esc(l.sub) + "</div>" : "") +
+        "<div class=\"split\">" + splits + "</div></div>";
+    }
+    var cls = "card";
+    if(l.style && l.style !== "normal") cls += " " + esc(l.style);
+    var arrow = (l.style === "sky" && /video|youtube/i.test(l.title)) ? "&#9654;" : "&rarr;";
+    if(/youtube|video/i.test(l.title)) arrow = "&#9654;";
+    return "<a class=\"" + cls + "\" href=\"" + esc(l.url) + "\">" +
+      "<div class=\"card-title\">" + esc(l.title) + " <span class=\"arrow\">" + arrow + "</span></div>" +
+      (l.sub ? "<div class=\"card-sub\">" + esc(l.sub) + "</div>" : "") + "</a>";
+  }
+
+  var html = "";
+  (cfg.sections||[]).forEach(function(sec){
+    var visible = (sec.links||[]).filter(function(l){ return !l.hidden; });
+    if(!visible.length) return;
+    html += "<section>";
+    html += "<div class=\"sec-label\">" + esc(sec.label) + "</div>";
+    if(sec.note) html += "<p class=\"sec-note\">" + esc(sec.note) + "</p>";
+    html += "<div class=\"links\">" + visible.map(cardHTML).join("") + "</div>";
+    if(sec.endnote) html += "<p class=\"note\"><span class=\"u\">" + esc(sec.endnote) + "</span></p>";
+    html += "</section>";
+  });
+  document.getElementById("main-content").innerHTML = html;
+
+  /* FOOTER */
+  var f = cfg.footer||{};
+  document.getElementById("footer-inner").innerHTML =
+    "<div class=\"f-name\">" + esc(f.name) + "</div>" +
+    "<div class=\"f-tag\">" + esc(f.tag) + "</div>" +
+    "<div class=\"f-line\">" +
+      esc(f.address) + " &middot; <a href=\"mailto:" + esc(f.email) + "\">" + esc(f.email) + "</a><br>" +
+      "<a href=\"" + esc(f.ctaUrl) + "\">" + esc(f.ctaText) + "</a>" +
+    "</div>";
+})();
+</script>
+</body>
+</html>

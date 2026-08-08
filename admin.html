@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELI Links · Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#c10230; --red-accent:#ef4048; --sky:#a3dce9; --sky-50:#d1eef4;
+    --blue:#2692c6; --ink:#212121; --paper:#f7f5f2; --line:#e4dfd9;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Roboto',Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.45;}
+  .mono{font-family:'Roboto Mono',monospace;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    background:var(--red);color:#fff;
+    padding:14px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    position:sticky;top:0;z-index:50;
+  }
+  .topbar .t{font-weight:900;text-transform:uppercase;letter-spacing:.04em;font-size:15px;}
+  .topbar .t small{display:block;font-family:'Roboto Mono',monospace;font-weight:400;font-size:10.5px;letter-spacing:.18em;color:var(--sky);text-transform:uppercase;}
+  .topbar .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+
+  button{
+    font-family:'Roboto',Arial,sans-serif;
+    font-weight:700;font-size:13.5px;
+    border-radius:9px;border:1.5px solid transparent;
+    padding:9px 15px;cursor:pointer;
+    transition:filter .12s ease, background .12s ease;
+  }
+  button:disabled{opacity:.55;cursor:not-allowed;}
+  .btn-primary{background:#fff;color:var(--red);}
+  .btn-primary:hover:not(:disabled){filter:brightness(.95);}
+  .btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5);}
+  .btn-ghost:hover:not(:disabled){background:rgba(255,255,255,.12);}
+  .btn-red{background:var(--red);color:#fff;}
+  .btn-red:hover:not(:disabled){filter:brightness(1.08);}
+  .btn-outline{background:#fff;color:var(--red);border-color:var(--red);}
+  .btn-outline:hover:not(:disabled){background:var(--red);color:#fff;}
+  .btn-sm{padding:5px 9px;font-size:12px;border-radius:7px;}
+
+  .shell{max-width:1150px;margin:0 auto;padding:22px 18px 60px;}
+
+  /* ---------- login ---------- */
+  .login-card{
+    max-width:440px;margin:48px auto;
+    background:#fff;border:1.5px solid var(--line);border-radius:16px;
+    padding:30px 28px;
+    box-shadow:0 10px 30px rgba(33,33,33,.07);
+  }
+  .login-card h2{font-weight:900;text-transform:uppercase;font-size:19px;}
+  .login-card .sub{font-size:13.5px;color:#6a6a6a;margin:6px 0 20px;}
+  label{display:block;font-family:'Roboto Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin:14px 0 5px;}
+  input[type=text],input[type=password],textarea,select{
+    width:100%;
+    font-family:'Roboto',Arial,sans-serif;font-size:14px;
+    padding:10px 12px;
+    border:1.5px solid var(--line);border-radius:9px;
+    background:#fff;color:var(--ink);
+  }
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--sky);border-color:var(--blue);}
+  .remember{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13.5px;color:#555;}
+  .login-card .go{width:100%;margin-top:20px;padding:12px;}
+  .hint{margin-top:18px;font-size:12.5px;color:#777;background:var(--sky-50);border-radius:10px;padding:12px 14px;line-height:1.6;}
+  .hint b{color:var(--ink);}
+  details summary{cursor:pointer;font-weight:700;color:var(--blue);font-size:13px;margin-top:14px;}
+  details .hint{margin-top:10px;}
+  .err{margin-top:14px;color:var(--red);font-size:13.5px;font-weight:500;display:none;}
+
+  /* ---------- editor layout ---------- */
+  .editor-grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:22px;align-items:start;}
+  @media(max-width:960px){.editor-grid{grid-template-columns:1fr;}}
+
+  .panel{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:18px 18px 20px;margin-bottom:18px;}
+  .panel-h{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-family:'Roboto Mono',monospace;font-size:12px;font-weight:700;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--red);
+    margin-bottom:12px;
+  }
+  .panel-h .grow{flex:1;height:2px;background:linear-gradient(90deg,var(--red),transparent);opacity:.25;}
+
+  .field{margin-bottom:10px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:560px){.row2{grid-template-columns:1fr;}}
+
+  /* link item */
+  .link-item{
+    border:1.5px solid var(--line);border-left:5px solid var(--red);
+    border-radius:11px;padding:12px 14px;margin-bottom:12px;background:#fffdfb;
+  }
+  .link-item.hiddenitem{opacity:.5;border-left-color:#aaa;}
+  .link-item .li-top{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+  .link-item .li-title{flex:1;font-weight:700;font-size:13.5px;min-width:120px;}
+  .tools{display:flex;gap:5px;flex-wrap:wrap;}
+  .tools button{background:#fff;border:1.5px solid var(--line);color:#555;}
+  .tools button:hover:not(:disabled){border-color:var(--red);color:var(--red);}
+  .tools .danger:hover:not(:disabled){background:var(--red);border-color:var(--red);color:#fff;}
+  .splitbox{border:1.5px dashed var(--line);border-radius:9px;padding:10px;margin-top:8px;}
+  .splitbox .row2{margin-bottom:8px;}
+  .addbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+
+  /* preview */
+  .preview-wrap{position:sticky;top:76px;}
+  .preview-frame{
+    width:100%;height:640px;border:1.5px solid var(--line);border-radius:20px;
+    background:#fff;box-shadow:0 10px 30px rgba(33,33,33,.08);
+  }
+  .preview-cap{font-family:'Roboto Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#888;text-align:center;margin-top:8px;}
+
+  /* status toast */
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%);
+    background:var(--ink);color:#fff;
+    padding:12px 20px;border-radius:999px;
+    font-size:13.5px;font-weight:500;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+    display:none;z-index:99;max-width:92vw;text-align:center;
+  }
+  .toast.ok{background:#1a7f37;}
+  .toast.bad{background:var(--red);}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="t">ELI Links Admin<small>English Language Institute · Link-in-bio</small></div>
+  <div class="actions hidden" id="topActions">
+    <button class="btn-ghost" id="btnReload">Reload</button>
+    <button class="btn-ghost" id="btnLogout">Sign out</button>
+    <button class="btn-primary" id="btnPublish">Publish changes</button>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- ================= LOGIN ================= -->
+  <div class="login-card" id="loginView">
+    <h2>Sign in</h2>
+    <p class="sub">Edit the ELI link-in-bio page. Changes go live about a minute after you publish.</p>
+    <label>GitHub username (site owner)</label>
+    <input type="text" id="inOwner" placeholder="e.g. viniciogarzon" autocomplete="username">
+    <label>Repository</label>
+    <input type="text" id="inRepo" value="eli-links">
+    <label>Access key</label>
+    <input type="password" id="inToken" placeholder="github_pat_…" autocomplete="current-password">
+    <div class="remember"><input type="checkbox" id="inRemember" checked> <span>Remember me on this device</span></div>
+    <button class="btn-red go" id="btnLogin">Enter admin</button>
+    <div class="err" id="loginErr"></div>
+    <details>
+      <summary>How do I get an access key?</summary>
+      <div class="hint">
+        The access key is created once by the site owner and shared with editors like a password:<br>
+        1. On GitHub: <b>Settings → Developer settings → Fine-grained tokens → Generate new token</b>.<br>
+        2. Repository access: <b>Only select repositories → eli-links</b>.<br>
+        3. Permissions: <b>Contents → Read and write</b>. Nothing else.<br>
+        4. Copy the key (starts with <b>github_pat_</b>) and keep it safe.
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= EDITOR ================= -->
+  <div class="editor-grid hidden" id="editorView">
+    <div id="editCol">
+
+      <div class="panel">
+        <div class="panel-h">Header <span class="grow"></span></div>
+        <div class="row2">
+          <div class="field"><label>Small top label</label><input type="text" data-bind="hero.label"></div>
+          <div class="field"><label>Tagline (regular part)</label><input type="text" data-bind="hero.taglineText"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Title line 1</label><input type="text" data-bind="hero.titleLine1"></div>
+          <div class="field"><label>Title line 2 (highlighted)</label><input type="text" data-bind="hero.titleLine2"></div>
+        </div>
+        <div class="field"><label>Tagline (handwritten word)</label><input type="text" data-bind="hero.taglineMarker"></div>
+      </div>
+
+      <div id="sectionsHost"></div>
+
+      <button class="btn-outline" id="btnAddSection">+ Add section</button>
+
+      <div class="panel" style="margin-top:18px;">
+        <div class="panel-h">Footer <span class="grow"></span></div>
+        <div class="row2">
+          <div class="field"><label>Name</label><input type="text" data-bind="footer.name"></div>
+          <div class="field"><label>Tag line</label><input type="text" data-bind="footer.tag"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Address</label><input type="text" data-bind="footer.address"></div>
+          <div class="field"><label>Email</label><input type="text" data-bind="footer.email"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Bottom link text</label><input type="text" data-bind="footer.ctaText"></div>
+          <div class="field"><label>Bottom link URL</label><input type="text" data-bind="footer.ctaUrl"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="preview-wrap">
+      <iframe class="preview-frame" id="previewFrame" title="Live preview"></iframe>
+      <div class="preview-cap">Live preview · updates as you type</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- state ---------------- */
+var S = {
+  owner:"", repo:"", token:"",
+  sha:null,          // current file sha on GitHub
+  template:"",       // full index.html source (with config placeholder intact)
+  cfg:null           // parsed config object
+};
+var CFG_RE = /(<script type="application\/json" id="eli-config">)([\s\S]*?)(<\/script>)/;
+var API = "https://api.github.com";
+
+var LSKEY = "eli-admin-cred";
+function lsGet(){ try{ return JSON.parse(localStorage.getItem(LSKEY)||"null"); }catch(e){ return null; } }
+function lsSet(v){ try{ v===null ? localStorage.removeItem(LSKEY) : localStorage.setItem(LSKEY, JSON.stringify(v)); }catch(e){} }
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+
+function toast(msg, cls){
+  var t = $("toast");
+  t.textContent = msg;
+  t.className = "toast " + (cls||"");
+  t.style.display = "block";
+  clearTimeout(t._h);
+  t._h = setTimeout(function(){ t.style.display="none"; }, 4200);
+}
+
+/* base64 helpers (UTF-8 safe) */
+function b64decode(b64){ return decodeURIComponent(escape(atob(b64.replace(/\n/g,"")))); }
+function b64encode(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+/* ---------------- GitHub API ---------------- */
+function gh(path, opts){
+  opts = opts || {};
+  opts.headers = Object.assign({
+    "Authorization": "Bearer " + S.token,
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  }, opts.headers||{});
+  return fetch(API + path, opts).then(function(r){
+    if(!r.ok) return r.json().catch(function(){return {};}).then(function(j){
+      var msg = (j && j.message) ? j.message : ("HTTP " + r.status);
+      var e = new Error(msg); e.status = r.status; throw e;
+    });
+    return r.status === 204 ? null : r.json();
+  });
+}
+
+function loadFile(){
+  return gh("/repos/" + S.owner + "/" + S.repo + "/contents/index.html?ref=main&cachebust=" + Date.now())
+    .then(function(j){
+      S.sha = j.sha;
+      S.template = b64decode(j.content);
+      var m = S.template.match(CFG_RE);
+      if(!m) throw new Error("index.html does not contain the editable config block.");
+      S.cfg = JSON.parse(m[2]);
+    });
+}
+
+function buildHtml(){
+  var json = JSON.stringify(S.cfg, null, 2);
+  return S.template.replace(CFG_RE, function(_, a, b, c){ return a + "\n" + json + "\n" + c; });
+}
+
+function publish(){
+  var btn = $("btnPublish");
+  btn.disabled = true; btn.textContent = "Publishing…";
+  var body = {
+    message: "Update ELI links via admin",
+    content: b64encode(buildHtml()),
+    sha: S.sha,
+    branch: "main"
+  };
+  gh("/repos/" + S.owner + "/" + S.repo + "/contents/index.html", {
+    method:"PUT", body: JSON.stringify(body)
+  }).then(function(j){
+    S.sha = j.content.sha;
+    toast("Published! The live site updates in about a minute.", "ok");
+  }).catch(function(e){
+    if(e.status === 409){
+      toast("The file changed on GitHub. Click Reload, then publish again.", "bad");
+    } else {
+      toast("Could not publish: " + e.message, "bad");
+    }
+  }).finally(function(){
+    btn.disabled = false; btn.textContent = "Publish changes";
+  });
+}
+
+/* ---------------- preview ---------------- */
+var pvTimer = null;
+function refreshPreview(){
+  clearTimeout(pvTimer);
+  pvTimer = setTimeout(function(){
+    $("previewFrame").srcdoc = buildHtml();
+  }, 250);
+}
+
+/* ---------------- data binding (hero / footer) ---------------- */
+function bindStatics(){
+  var inputs = document.querySelectorAll("[data-bind]");
+  inputs.forEach(function(inp){
+    var path = inp.getAttribute("data-bind").split(".");
+    inp.value = S.cfg[path[0]][path[1]] || "";
+    inp.oninput = function(){
+      S.cfg[path[0]][path[1]] = inp.value;
+      refreshPreview();
+    };
+  });
+}
+
+/* ---------------- sections editor ---------------- */
+var STYLES = [
+  ["normal","Standard (red)"],
+  ["featured","Featured (solid red)"],
+  ["pathfinder","Highlight (light blue)"],
+  ["sky","Secondary (blue accent)"],
+  ["excel","Double button (like Excel)"]
+];
+
+function renderSections(){
+  var host = $("sectionsHost");
+  host.innerHTML = "";
+  S.cfg.sections.forEach(function(sec, si){
+    var panel = document.createElement("div");
+    panel.className = "panel";
+    var head =
+      '<div class="panel-h">Section ' + (si+1) +
+      ' <span class="grow"></span>' +
+      '<span class="tools">' +
+        '<button class="btn-sm" data-act="sec-up" ' + (si===0?"disabled":"") + '>&#9650;</button>' +
+        '<button class="btn-sm" data-act="sec-down" ' + (si===S.cfg.sections.length-1?"disabled":"") + '>&#9660;</button>' +
+        '<button class="btn-sm danger" data-act="sec-del">Delete</button>' +
+      '</span></div>';
+    var fields =
+      '<div class="row2">' +
+        '<div class="field"><label>Section title</label><input type="text" data-sec="label" value="' + esc(sec.label) + '"></div>' +
+        '<div class="field"><label>Note under title (optional)</label><input type="text" data-sec="note" value="' + esc(sec.note||"") + '"></div>' +
+      '</div>' +
+      '<div class="field"><label>Handwritten end note (optional)</label><input type="text" data-sec="endnote" value="' + esc(sec.endnote||"") + '"></div>';
+
+    var linksHtml = sec.links.map(function(l, li){
+      var isExcel = l.style === "excel";
+      var splitHtml = "";
+      if(isExcel){
+        splitHtml = '<div class="splitbox"><label style="margin-top:0">Double buttons</label>' +
+          (l.split||[]).map(function(sp, pi){
+            return '<div class="row2">' +
+              '<input type="text" placeholder="Button label" data-split="label" data-pi="'+pi+'" value="' + esc(sp.label) + '">' +
+              '<input type="text" placeholder="https://…" data-split="url" data-pi="'+pi+'" value="' + esc(sp.url) + '">' +
+            '</div>';
+          }).join("") + '</div>';
+      }
+      return '<div class="link-item' + (l.hidden ? " hiddenitem":"") + '" data-li="'+li+'">' +
+        '<div class="li-top">' +
+          '<span class="li-title">' + esc(l.title || "(untitled)") + '</span>' +
+          '<span class="tools">' +
+            '<button class="btn-sm" data-act="up" '+(li===0?"disabled":"")+'>&#9650;</button>' +
+            '<button class="btn-sm" data-act="down" '+(li===sec.links.length-1?"disabled":"")+'>&#9660;</button>' +
+            '<button class="btn-sm" data-act="hide">' + (l.hidden ? "Show" : "Hide") + '</button>' +
+            '<button class="btn-sm danger" data-act="del">Delete</button>' +
+          '</span>' +
+        '</div>' +
+        '<div class="row2">' +
+          '<div class="field"><label>Button title</label><input type="text" data-l="title" value="' + esc(l.title) + '"></div>' +
+          '<div class="field"><label>Style</label><select data-l="style">' +
+            STYLES.map(function(st){ return '<option value="'+st[0]+'"'+(l.style===st[0]?" selected":"")+'>'+st[1]+'</option>'; }).join("") +
+          '</select></div>' +
+        '</div>' +
+        '<div class="field"><label>Subtitle (optional)</label><input type="text" data-l="sub" value="' + esc(l.sub||"") + '"></div>' +
+        (isExcel ? "" : '<div class="field"><label>Link URL</label><input type="text" data-l="url" value="' + esc(l.url||"") + '"></div>') +
+        splitHtml +
+      '</div>';
+    }).join("");
+
+    panel.innerHTML = head + fields + linksHtml +
+      '<div class="addbar"><button class="btn-outline btn-sm" data-act="add-link">+ Add button</button></div>';
+
+    /* section-level field bindings */
+    panel.querySelectorAll("[data-sec]").forEach(function(inp){
+      var k = inp.getAttribute("data-sec");
+      inp.oninput = function(){ sec[k] = inp.value; refreshPreview(); };
+    });
+
+    /* section-level actions */
+    panel.querySelector('[data-act="sec-del"]').onclick = function(){
+      if(!confirm("Delete this whole section and its buttons?")) return;
+      S.cfg.sections.splice(si,1); renderSections(); refreshPreview();
+    };
+    panel.querySelector('[data-act="sec-up"]').onclick = function(){
+      S.cfg.sections.splice(si-1,0,S.cfg.sections.splice(si,1)[0]); renderSections(); refreshPreview();
+    };
+    panel.querySelector('[data-act="sec-down"]').onclick = function(){
+      S.cfg.sections.splice(si+1,0,S.cfg.sections.splice(si,1)[0]); renderSections(); refreshPreview();
+    };
+    panel.querySelector('[data-act="add-link"]').onclick = function(){
+      sec.links.push({style:"normal",title:"New button",sub:"",url:"https://",hidden:false});
+      renderSections(); refreshPreview();
+    };
+
+    /* link-level bindings & actions */
+    panel.querySelectorAll(".link-item").forEach(function(item){
+      var li = parseInt(item.getAttribute("data-li"),10);
+      var l = sec.links[li];
+
+      item.querySelectorAll("[data-l]").forEach(function(inp){
+        var k = inp.getAttribute("data-l");
+        if(inp.tagName === "SELECT"){
+          inp.onchange = function(){
+            l[k] = inp.value;
+            if(l.style==="excel" && !l.split) l.split=[{label:"OPTION A",url:"https://"},{label:"OPTION B",url:"https://"}];
+            renderSections(); refreshPreview();
+          };
+        } else {
+          inp.oninput = function(){
+            l[k] = inp.value;
+            if(k==="title") item.querySelector(".li-title").textContent = inp.value || "(untitled)";
+            refreshPreview();
+          };
+        }
+      });
+      item.querySelectorAll("[data-split]").forEach(function(inp){
+        var k = inp.getAttribute("data-split"), pi = parseInt(inp.getAttribute("data-pi"),10);
+        inp.oninput = function(){ l.split[pi][k] = inp.value; refreshPreview(); };
+      });
+      item.querySelector('[data-act="up"]').onclick = function(){
+        sec.links.splice(li-1,0,sec.links.splice(li,1)[0]); renderSections(); refreshPreview();
+      };
+      item.querySelector('[data-act="down"]').onclick = function(){
+        sec.links.splice(li+1,0,sec.links.splice(li,1)[0]); renderSections(); refreshPreview();
+      };
+      item.querySelector('[data-act="hide"]').onclick = function(){
+        l.hidden = !l.hidden; renderSections(); refreshPreview();
+      };
+      item.querySelector('[data-act="del"]').onclick = function(){
+        if(!confirm("Delete this button?")) return;
+        sec.links.splice(li,1); renderSections(); refreshPreview();
+      };
+    });
+
+    host.appendChild(panel);
+  });
+}
+
+/* ---------------- login flow ---------------- */
+function enterEditor(){
+  $("loginView").classList.add("hidden");
+  $("editorView").classList.remove("hidden");
+  $("topActions").classList.remove("hidden");
+  bindStatics();
+  renderSections();
+  refreshPreview();
+}
+
+function doLogin(){
+  var owner = $("inOwner").value.trim();
+  var repo  = $("inRepo").value.trim() || "eli-links";
+  var token = $("inToken").value.trim();
+  var err = $("loginErr");
+  err.style.display = "none";
+  if(!owner || !token){
+    err.textContent = "Please fill in the GitHub username and the access key.";
+    err.style.display = "block"; return;
+  }
+  S.owner = owner; S.repo = repo; S.token = token;
+  var btn = $("btnLogin"); btn.disabled = true; btn.textContent = "Checking…";
+  loadFile().then(function(){
+    if($("inRemember").checked) lsSet({owner:owner, repo:repo, token:token});
+    enterEditor();
+  }).catch(function(e){
+    err.textContent = (e.status===401||e.status===403) ? "That access key was not accepted. Check it and try again."
+      : (e.status===404) ? "Repository not found. Check the username and repository name."
+      : "Could not load the site: " + e.message;
+    err.style.display = "block";
+  }).finally(function(){
+    btn.disabled = false; btn.textContent = "Enter admin";
+  });
+}
+
+$("btnLogin").onclick = doLogin;
+$("inToken").addEventListener("keydown", function(e){ if(e.key==="Enter") doLogin(); });
+
+$("btnLogout").onclick = function(){
+  lsSet(null);
+  location.reload();
+};
+$("btnReload").onclick = function(){
+  loadFile().then(function(){
+    bindStatics(); renderSections(); refreshPreview();
+    toast("Reloaded the latest published version.", "ok");
+  }).catch(function(e){ toast("Reload failed: " + e.message, "bad"); });
+};
+$("btnPublish").onclick = publish;
+$("btnAddSection").onclick = function(){
+  S.cfg.sections.push({label:"New Section",note:"",endnote:"",links:[]});
+  renderSections(); refreshPreview();
+};
+
+/* auto-login if remembered */
+var saved = lsGet();
+if(saved && saved.token){
+  $("inOwner").value = saved.owner||"";
+  $("inRepo").value = saved.repo||"eli-links";
+  $("inToken").value = saved.token||"";
+  S.owner = saved.owner; S.repo = saved.repo; S.token = saved.token;
+  loadFile().then(enterEditor).catch(function(){ /* stay on login */ });
+}
+})();
+</script>
+</body>
+</html>
