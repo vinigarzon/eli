@@ -146,25 +146,15 @@
   <div class="login-card" id="loginView">
     <h2>Sign in</h2>
     <p class="sub">Edit the ELI link-in-bio page. Changes go live about a minute after you publish.</p>
-    <label>GitHub username (site owner)</label>
-    <input type="text" id="inOwner" placeholder="e.g. viniciogarzon" autocomplete="username">
+    <label>GitHub username</label>
+    <input type="text" id="inOwner" value="vinigarzon" autocomplete="username">
     <label>Repository</label>
-    <input type="text" id="inRepo" value="eli-links">
+    <input type="text" id="inRepo" value="eli">
     <label>Access key</label>
-    <input type="password" id="inToken" placeholder="github_pat_…" autocomplete="current-password">
+    <input type="password" id="inToken" placeholder="" autocomplete="current-password">
     <div class="remember"><input type="checkbox" id="inRemember" checked> <span>Remember me on this device</span></div>
     <button class="btn-red go" id="btnLogin">Enter admin</button>
     <div class="err" id="loginErr"></div>
-    <details>
-      <summary>How do I get an access key?</summary>
-      <div class="hint">
-        The access key is created once by the site owner and shared with editors like a password:<br>
-        1. On GitHub: <b>Settings → Developer settings → Fine-grained tokens → Generate new token</b>.<br>
-        2. Repository access: <b>Only select repositories → eli-links</b>.<br>
-        3. Permissions: <b>Contents → Read and write</b>. Nothing else.<br>
-        4. Copy the key (starts with <b>github_pat_</b>) and keep it safe.
-      </div>
-    </details>
   </div>
 
   <!-- ================= EDITOR ================= -->
@@ -475,7 +465,7 @@ function enterEditor(){
 
 function doLogin(){
   var owner = $("inOwner").value.trim();
-  var repo  = $("inRepo").value.trim() || "eli-links";
+  var repo  = $("inRepo").value.trim() || "eli";
   var token = $("inToken").value.trim();
   var err = $("loginErr");
   err.style.display = "none";
@@ -520,8 +510,8 @@ $("btnAddSection").onclick = function(){
 /* auto-login if remembered */
 var saved = lsGet();
 if(saved && saved.token){
-  $("inOwner").value = saved.owner||"";
-  $("inRepo").value = saved.repo||"eli-links";
+  $("inOwner").value = saved.owner||"vinigarzon";
+  $("inRepo").value = saved.repo||"eli";
   $("inToken").value = saved.token||"";
   S.owner = saved.owner; S.repo = saved.repo; S.token = saved.token;
   loadFile().then(enterEditor).catch(function(){ /* stay on login */ });

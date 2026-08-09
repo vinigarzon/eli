@@ -10,23 +10,25 @@ Página de enlaces del English Language Institute (North Central College) + pane
 | `admin.html` | Panel de administración (elincc.site/admin.html). Login con clave, edición visual, vista previa en vivo y botón **Publish**. |
 | `CNAME` | Dominio personalizado para GitHub Pages (`elincc.site`). |
 
-## Puesta en marcha (una sola vez)
+Sitio en producción: repo `vinigarzon/eli` → GitHub Pages → dominio `elincc.site`.
 
-1. **Repo**: crea el repositorio `eli-links` en GitHub y sube estos 4 archivos a la rama `main`.
-2. **Pages**: Settings → Pages → "Deploy from a branch" → `main` / root. En ~1 min el sitio vive en `tuusuario.github.io/eli-links`.
-3. **Dominio elincc.site**: en Settings → Pages → Custom domain escribe `elincc.site` (el archivo CNAME ya está). En el proveedor del dominio crea estos DNS:
+## Puesta en marcha (ya realizada; referencia por si hay que repetirla)
+
+1. **Repo**: repositorio `eli` (cuenta `vinigarzon`), archivos en la rama `main`.
+2. **Pages**: Settings → Pages → "Deploy from a branch" → `main` / root.
+3. **Dominio elincc.site**: Settings → Pages → Custom domain = `elincc.site` (archivo CNAME incluido). DNS en el proveedor del dominio:
    - 4 registros **A** para `@` (raíz): `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-   - 1 registro **CNAME** para `www` → `tuusuario.github.io`
-   - Cuando GitHub valide el dominio, activa **Enforce HTTPS**.
-4. **Clave de acceso del admin** (esto es el "user/pass"): GitHub → Settings → Developer settings → **Fine-grained personal access tokens** → Generate new token:
-   - Repository access: **Only select repositories → eli-links**
+   - 1 registro **CNAME** para `www` → `vinigarzon.github.io`
+   - Con el dominio validado, activar **Enforce HTTPS**.
+4. **Clave de acceso del admin**: GitHub → Settings → Developer settings → **Fine-grained personal access tokens** → Generate new token:
+   - Repository access: **Only select repositories → eli**
    - Permissions: **Contents → Read and write** (nada más)
    - Copia la clave (`github_pat_…`) y compártela solo con quien deba administrar. Se puede revocar y regenerar cuando quieras.
 
 ## Uso diario (para cualquier persona, sin conocimientos técnicos)
 
 1. Abrir `elincc.site/admin.html`
-2. Entrar con: usuario de GitHub del dueño + nombre del repo + la clave de acceso
+2. Usuario (`vinigarzon`) y repositorio (`eli`) ya vienen prellenados — solo escribir la clave de acceso
 3. Editar textos, botones, orden, ocultar/mostrar, agregar secciones — con vista previa en vivo
 4. Clic en **Publish changes** → el sitio se actualiza solo en ~1 minuto
 
