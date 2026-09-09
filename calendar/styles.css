@@ -114,6 +114,23 @@ a{color:var(--ncc-blue)}
 .filters input,.filters select{width:auto;padding:7px 10px;font-size:14px}
 .filters input[type=search]{min-width:220px}
 
+/* ---------- quick views ---------- */
+.quick{display:flex;align-items:center;gap:6px;padding:8px 18px;flex-wrap:wrap;background:var(--paper);border-bottom:1px solid var(--line)}
+.quick-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.qf{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
+.qf:hover{border-color:var(--ncc-black)}
+.qf.active{background:var(--ncc-black);color:#fff;border-color:var(--ncc-black)}
+.week-band{grid-column:1 / -1;display:flex;gap:8px;align-items:center;min-height:18px;padding:0 4px;margin-top:4px}
+.week-band .series-tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ncc-red);background:#fbe6ea;border-radius:4px;padding:2px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.chip .cam{font-size:11px;flex:none}
+.chip .cam.needed{filter:grayscale(0)}
+.chip .cam.delivered{opacity:.55}
+.post-row .photo{grid-column:1 / -1;font-size:13px;background:#fbe6ea;border-left:4px solid var(--ncc-red);border-radius:6px;padding:8px 10px}
+.post-row .photo.delivered{background:var(--ncc-sky-50);border-left-color:var(--ncc-blue)}
+.post-row .photo b{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.photo-set{display:grid;gap:10px;background:#fdf3f5;border-color:#f1b8c2}
+.photo-set legend{color:var(--ncc-red)}
+
 /* ---------- calendar ---------- */
 .main{flex:1;padding:14px 18px 60px;position:relative}
 .weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:6px}
@@ -267,6 +284,9 @@ legend{font-size:12px;font-weight:500;color:var(--muted);padding:0 4px}
   .filters input[type=search]{min-width:0;flex:1 1 100%}
 }
 @media (max-width:720px){
+  .quick{padding:6px 8px;overflow-x:auto;flex-wrap:nowrap}
+  .qf{font-size:12px;padding:4px 10px;white-space:nowrap}
+  .week-band{display:none}
   .filters-toggle{display:inline-block;margin-left:auto}
   .filters{display:none}
   .filters.open{display:flex}

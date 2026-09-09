@@ -9,7 +9,7 @@
 const POST_FIELDS = [
   'title', 'scheduled_date', 'scheduled_time', 'channel', 'format', 'status',
   'topic', 'assignee', 'palette', 'ready_3x4', 'ready_9x16', 'caption',
-  'notes', 'asset_links', 'import_key',
+  'notes', 'asset_links', 'import_key', 'series', 'photo_brief', 'photo_status',
 ];
 
 export function pickPostFields(obj) {
@@ -368,6 +368,7 @@ export function defaultPost() {
     title: '', scheduled_date: '', scheduled_time: null, channel: 'Instagram', format: 'single_image',
     status: 'idea', topic: '', assignee: '', palette: 'red', ready_3x4: false, ready_9x16: false,
     caption: '', notes: '', asset_links: '', import_key: null,
+    series: '', photo_brief: '', photo_status: 'none',
   };
 }
 

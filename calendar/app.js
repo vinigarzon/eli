@@ -12,6 +12,7 @@ const FORMAT_LABEL = { single_image: 'Single image', carousel: 'Carousel', reel:
 const FORMAT_ICON = { single_image: '▣', carousel: '▤', reel: '▶', story: '▮' };
 const STATUS_LABEL = { idea: 'Idea', draft: 'Draft', in_review: 'In Review', approved: 'Approved', scheduled: 'Scheduled', published: 'Published' };
 const PALETTE_LABEL = { red: 'Red', black: 'Black', white: 'White' };
+const PHOTO_LABEL = { none: 'not needed', needed: 'needed', requested: 'requested', delivered: 'delivered' };
 
 const state = {
   backend: null,
@@ -22,7 +23,8 @@ const state = {
   view: 'month',
   listAll: false, // list view: false = selected month, true = every post
   month: '', // YYYY-MM
-  filters: { q: '', channel: '', format: '', status: '', topic: '', assignee: '' },
+  filters: { q: '', channel: '', format: '', status: '', topic: '', assignee: '', series: '' },
+  quick: '',
   open: null, // { id, base (snapshot of saved row), dirty }
   saving: 0,
   undoStack: [],
@@ -205,7 +207,10 @@ async function enterAppInner() {
   $('#menu-admin').hidden = profile.role !== 'owner';
   $('#brand-assets-note').textContent = CONFIG.BRAND_ASSETS_NOTE;
   if (!state.month) state.month = monthOf(todayISO());
+  $('#month-label').textContent = monthLabel(state.month);
+  setSaveStatus('saving', 'Loading…');
   await loadAll();
+  if ($('#save-status').dataset.state === 'saving') setSaveStatus('idle', 'All changes saved');
   state.backend.subscribe(onRealtime, (status) => { const el = $('#live-status'); el.dataset.state = status; el.title = 'Live updates: ' + status; });
 }
 
@@ -268,10 +273,22 @@ function visiblePosts() {
     (!f.status || p.status === f.status) &&
     (!f.topic || p.topic === f.topic) &&
     (!f.assignee || p.assignee === f.assignee) &&
-    (!q || [p.title, p.caption, p.notes, p.topic, p.assignee, p.channel].some((v) => (v || '').toLowerCase().includes(q)))
+    (!f.series || p.series === f.series) &&
+    quickMatch(p) &&
+    (!q || [p.title, p.caption, p.notes, p.topic, p.assignee, p.channel, p.series, p.photo_brief].some((v) => (v || '').toLowerCase().includes(q)))
   ).sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date) || (a.scheduled_time || '').localeCompare(b.scheduled_time || '') || a.title.localeCompare(b.title));
 }
 function filtersActive() { return Object.values(state.filters).some(Boolean); }
+function weekRange(isoDate) { const start = addDays(isoDate, -dow(isoDate)); return [start, addDays(start, 6)]; }
+function quickMatch(p) {
+  switch (state.quick) {
+    case 'photos_needed': return p.photo_status === 'needed' || p.photo_status === 'requested';
+    case 'photos_delivered': return p.photo_status === 'delivered' && !['published'].includes(p.status);
+    case 'in_progress': return ['draft', 'in_review', 'approved'].includes(p.status);
+    case 'week': { const [s, e] = weekRange(todayISO()); return p.scheduled_date >= s && p.scheduled_date <= e; }
+    default: return true;
+  }
+}
 
 function render() {
   renderDatalists();
@@ -280,8 +297,10 @@ function render() {
   $('#f-clear').hidden = !filtersActive();
   const posts = visiblePosts();
   $('#empty').hidden = !(state.posts.size === 0);
-  $('#menu-samples').hidden = state.profile.role !== 'owner';
+  $$('.owner-only').forEach((el) => el.hidden = state.profile.role !== 'owner');
   $('#empty [data-action=samples]').hidden = state.profile.role !== 'owner';
+  $$('.qf').forEach((b) => b.classList.toggle('active', b.dataset.quick === state.quick));
+  $('#f-clear').hidden = !(filtersActive() || state.quick);
   if (state.view === 'month') { $('#view-month').hidden = false; $('#view-list').hidden = true; renderMonth(posts); }
   else { $('#view-month').hidden = true; $('#view-list').hidden = false; renderList(state.listAll ? posts : posts.filter((p) => monthOf(p.scheduled_date) === state.month)); }
   $('#list-scope').hidden = state.view !== 'month' ? false : true;
@@ -296,7 +315,9 @@ function renderDatalists() {
   };
   const channels = vals('channel', CONFIG.CHANNELS); const topics = vals('topic', CONFIG.TOPICS);
   const assignees = vals('assignee', state.members.map((m) => m.display_name));
-  fill('#f-channel', channels, 'All channels'); fill('#f-topic', topics, 'All topics'); fill('#f-assignee', assignees, 'All assignees');
+  const series = vals('series');
+  fill('#f-channel', channels, 'All channels'); fill('#f-topic', topics, 'All topics'); fill('#f-assignee', assignees, 'All assignees'); fill('#f-series', series, 'All series');
+  $('#dl-series').innerHTML = series.map((v) => `<option value="${esc(v)}">`).join('');
   $('#dl-channel').innerHTML = channels.map((v) => `<option value="${esc(v)}">`).join('');
   $('#dl-topic').innerHTML = topics.map((v) => `<option value="${esc(v)}">`).join('');
   $('#dl-assignee').innerHTML = assignees.map((v) => `<option value="${esc(v)}">`).join('');
@@ -305,6 +326,7 @@ function renderDatalists() {
 function chipHTML(p) {
   return `<button type="button" class="chip pal-${p.palette}" draggable="true" data-id="${p.id}" title="${esc(p.title)} · ${STATUS_LABEL[p.status]} · ${FORMAT_LABEL[p.format]}${p.assignee ? ' · ' + esc(p.assignee) : ''}">
     <span class="fmt" aria-hidden="true">${FORMAT_ICON[p.format] || ''}</span>
+    ${p.photo_status && p.photo_status !== 'none' ? `<span class="cam ${p.photo_status}" title="Photo ${p.photo_status}">📷</span>` : ''}
     ${p.scheduled_time ? `<span class="time">${fmtTime(p.scheduled_time)}</span>` : ''}
     <span class="t">${esc(p.title || '(untitled)')}</span>
     <span class="st s-${p.status}">${STATUS_LABEL[p.status]}</span>
@@ -323,6 +345,10 @@ function renderMonth(posts) {
   const today = todayISO();
   let html = '';
   for (let d = start; d <= end; d = addDays(d, 1)) {
+    if (dow(d) === 0) {
+      const names = [...new Set([...state.posts.values()].filter((p) => p.scheduled_date >= d && p.scheduled_date <= addDays(d, 6) && p.series).map((p) => p.series))];
+      html += `<div class="week-band" aria-label="Series this week">${names.map((n) => `<span class="series-tag" title="${esc(n)}">${esc(n)}</span>`).join('')}</div>`;
+    }
     const inMonth = monthOf(d) === state.month;
     const list = byDate.get(d) || [];
     html += `<div class="day${inMonth ? '' : ' other'}${d === today ? ' today' : ''}" data-date="${d}" role="gridcell" aria-label="${longDate(d)}, ${list.length} post${list.length === 1 ? '' : 's'}">
@@ -353,6 +379,7 @@ function renderList(posts) {
               <span>${esc(p.channel)}</span><span>${FORMAT_LABEL[p.format]}</span>
               ${p.scheduled_time ? `<span>${fmtTime(p.scheduled_time)}</span>` : ''}
               ${p.topic ? `<span>${esc(p.topic)}</span>` : ''}
+              ${p.series ? `<span style="color:var(--ncc-red)">${esc(p.series)}</span>` : ''}
               <span class="pal ${p.palette}">${PALETTE_LABEL[p.palette]} emphasis</span>
             </div>
           </div>
@@ -360,6 +387,7 @@ function renderList(posts) {
             <span>${p.assignee ? 'Assigned to <strong>' + esc(p.assignee) + '</strong>' : 'Unassigned'}</span>
             <span class="ready"><span class="${p.ready_3x4 ? 'ok' : 'no'}">${p.ready_3x4 ? '✓' : '○'} 3:4</span> &nbsp; <span class="${p.ready_9x16 ? 'ok' : 'no'}">${p.ready_9x16 ? '✓' : '○'} 9:16 Story</span></span>
           </div>
+          ${p.photo_status && p.photo_status !== 'none' ? `<div class="photo ${p.photo_status}"><b>📷 Photo ${esc(PHOTO_LABEL[p.photo_status])}</b>${p.photo_brief ? ' · ' + esc(p.photo_brief) : ''}</div>` : ''}
           <div class="caption${p.caption ? '' : ' empty'}">${p.caption ? esc(p.caption) : 'No caption yet.'}${p.caption ? `<button type="button" class="btn small ghost copy" data-copy="${p.id}">Copy</button>` : ''}</div>
           <div class="meta">Last updated by ${esc(p.updated_by_name || '—')} · ${fmtStamp(p.updated_at)}</div>
         </article>`).join('')}
@@ -417,6 +445,7 @@ function readForm() {
     channel: f.channel.value.trim() || 'Instagram', format: f.format.value, status: f.status.value, topic: f.topic.value.trim(),
     assignee: f.assignee.value.trim(), palette: f.palette.value || 'red', ready_3x4: f.ready_3x4.checked, ready_9x16: f.ready_9x16.checked,
     caption: f.caption.value, notes: f.notes.value, asset_links: f.asset_links.value,
+    series: f.series.value.trim(), photo_brief: f.photo_brief.value, photo_status: f.photo_status.value || 'none',
   };
 }
 function fillForm(p) {
@@ -426,6 +455,7 @@ function fillForm(p) {
   f.topic.value = p.topic || ''; f.assignee.value = p.assignee || ''; f.palette.value = p.palette || 'red';
   f.ready_3x4.checked = !!p.ready_3x4; f.ready_9x16.checked = !!p.ready_9x16;
   f.caption.value = p.caption || ''; f.notes.value = p.notes || ''; f.asset_links.value = p.asset_links || '';
+  f.series.value = p.series || ''; f.photo_brief.value = p.photo_brief || ''; f.photo_status.value = p.photo_status || 'none';
   $('#move-date').value = p.scheduled_date || '';
   renderChecks();
 }
@@ -613,12 +643,15 @@ function normalizeImported(raw) {
     o.notes = p.notes || p.creative_notes || '';
     o.asset_links = Array.isArray(p.asset_links) ? p.asset_links.join('\n') : (p.asset_links || p.assets || '');
     o.import_key = p.import_key || null;
+    o.series = p.series || '';
+    o.photo_brief = p.photo_brief || '';
+    o.photo_status = ['none', 'needed', 'requested', 'delivered'].includes(p.photo_status) ? p.photo_status : 'none';
     o.version = p.version;
     return o;
   }).filter((p) => p.title || p.caption);
   return { posts: norm, comments };
 }
-function samePost(a, b) { return ['title', 'scheduled_date', 'scheduled_time', 'channel', 'format', 'status', 'topic', 'assignee', 'palette', 'ready_3x4', 'ready_9x16', 'caption', 'notes', 'asset_links'].every((k) => (a[k] ?? null) === (b[k] ?? null) || (k === 'scheduled_time' && (a[k] || '').slice(0, 5) === (b[k] || '').slice(0, 5))); }
+function samePost(a, b) { return ['title', 'scheduled_date', 'scheduled_time', 'channel', 'format', 'status', 'topic', 'assignee', 'palette', 'ready_3x4', 'ready_9x16', 'caption', 'notes', 'asset_links', 'series', 'photo_brief', 'photo_status'].every((k) => (a[k] ?? null) === (b[k] ?? null) || (k === 'scheduled_time' && (a[k] || '').slice(0, 5) === (b[k] || '').slice(0, 5))); }
 
 async function importJSON(file) {
   let raw;
@@ -725,8 +758,9 @@ function bindApp() {
 
   const f = state.filters;
   $('#f-q').oninput = (e) => { f.q = e.target.value; render(); };
-  for (const k of ['channel', 'format', 'status', 'topic', 'assignee']) $('#f-' + k).onchange = (e) => { f[k] = e.target.value; render(); };
-  $('#f-clear').onclick = () => { Object.keys(f).forEach((k) => f[k] = ''); $('#f-q').value = ''; render(); };
+  for (const k of ['channel', 'format', 'status', 'topic', 'assignee', 'series']) $('#f-' + k).onchange = (e) => { f[k] = e.target.value; render(); };
+  $('#f-clear').onclick = () => { Object.keys(f).forEach((k) => f[k] = ''); $('#f-q').value = ''; state.quick = ''; render(); };
+  $$('.qf').forEach((b) => b.onclick = () => { state.quick = b.dataset.quick; if (state.quick === 'week') state.month = monthOf(todayISO()); render(); });
 
   // guidelines
   $('#btn-guidelines').onclick = () => { const g = $('#guidelines'); g.hidden = !g.hidden; $('#btn-guidelines').setAttribute('aria-expanded', String(!g.hidden)); };
@@ -737,6 +771,7 @@ function bindApp() {
   document.addEventListener('click', (e) => { if (!e.target.closest('.menu-wrap')) $('#menu').hidden = true; });
   $('#menu').onclick = async (e) => {
     const b = e.target.closest('button'); if (!b) return; $('#menu').hidden = true;
+    if (b.classList.contains('owner-only') && state.profile.role !== 'owner') return;
     switch (b.dataset.action) {
       case 'rename': { const v = await promptDialog({ title: 'Change my name', label: 'This name is shown to your colleagues.', value: state.profile.display_name }); if (v) { try { await state.backend.updateDisplayName(v); state.profile.display_name = v; $('#me-name').textContent = v; $('#me-name2').textContent = v; toast('Name updated.'); } catch (err) { toast(err.message, { error: true }); } } break; }
       case 'admin': openAdmin(); break;

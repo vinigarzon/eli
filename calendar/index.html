@@ -84,10 +84,10 @@
         <div id="menu" class="menu" hidden>
           <div class="menu-head"><strong id="me-name2"></strong><br><small id="me-email"></small><br><small id="me-role" class="pill"></small></div>
           <button type="button" data-action="rename">Change my name</button>
-          <button type="button" data-action="admin" id="menu-admin">Members &amp; invitations</button>
-          <button type="button" data-action="export">Export JSON backup</button>
-          <button type="button" data-action="import">Import JSON…</button>
-          <button type="button" data-action="samples" id="menu-samples">Load 8 sample drafts</button>
+          <button type="button" data-action="admin" id="menu-admin" class="owner-only">Members &amp; invitations</button>
+          <button type="button" data-action="export" class="owner-only">Export JSON backup</button>
+          <button type="button" data-action="import" class="owner-only">Import JSON…</button>
+          <button type="button" data-action="samples" id="menu-samples" class="owner-only">Load 8 sample drafts</button>
           <hr>
           <button type="button" data-action="signout">Sign out</button>
         </div>
@@ -129,10 +129,20 @@
         <option value="published">Published</option>
       </select>
       <select id="f-topic" aria-label="Topic"><option value="">All topics</option></select>
+      <select id="f-series" aria-label="Series"><option value="">All series</option></select>
       <select id="f-assignee" aria-label="Assignee"><option value="">All assignees</option></select>
       <button type="button" id="f-clear" class="btn ghost small" hidden>Clear filters</button>
     </div>
   </section>
+
+  <div class="quick" role="group" aria-label="Quick views">
+    <span class="quick-label">Quick views</span>
+    <button type="button" class="qf active" data-quick="">Everything</button>
+    <button type="button" class="qf" data-quick="photos_needed">📷 Photos to shoot</button>
+    <button type="button" class="qf" data-quick="photos_delivered">✅ Photos delivered, ready to design</button>
+    <button type="button" class="qf" data-quick="in_progress">✏️ In progress</button>
+    <button type="button" class="qf" data-quick="week">📅 This week</button>
+  </div>
 
   <main class="main">
     <div id="view-month" class="view-month">
@@ -258,6 +268,7 @@
         </label>
         <label>Topic / content pillar <input type="text" name="topic" list="dl-topic"></label>
         <label>Assignee <input type="text" name="assignee" list="dl-assignee" placeholder="Who owns this post"></label>
+        <label class="full">Series (weekly story) <input type="text" name="series" list="dl-series" placeholder="e.g. Meet the Team Week"></label>
         <fieldset class="palette-set">
           <legend>Institutional palette</legend>
           <label class="radio" title="Pantone 200 C · #c10230"><input type="radio" name="palette" value="red"> <span class="sw red"></span> Red emphasis</label>
@@ -278,6 +289,18 @@
       </label>
       <ul id="caption-checks" class="checks" aria-live="polite"></ul>
 
+      <fieldset class="photo-set full">
+        <legend>📷 Photo request (for Lizzy)</legend>
+        <label>Photo status
+          <select name="photo_status">
+            <option value="none">No photo needed</option>
+            <option value="needed">Photo needed</option>
+            <option value="requested">Requested, waiting</option>
+            <option value="delivered">Delivered</option>
+          </select>
+        </label>
+        <label class="full">What to shoot <textarea name="photo_brief" rows="3" placeholder="Subject, location, orientation (3:4 and 9:16), mood, who must sign a consent form"></textarea></label>
+      </fieldset>
       <label class="full">Creative notes <textarea name="notes" rows="3" placeholder="Artwork direction, references, reminders"></textarea></label>
       <label class="full">Asset links <textarea name="asset_links" rows="2" placeholder="One link per line (Drive, Canva, Dropbox…)"></textarea></label>
 
@@ -314,6 +337,7 @@
 <datalist id="dl-channel"></datalist>
 <datalist id="dl-topic"></datalist>
 <datalist id="dl-assignee"></datalist>
+<datalist id="dl-series"></datalist>
 
 <!-- ================= GENERIC MODAL ================= -->
 <div id="modal-backdrop" class="backdrop" hidden></div>
