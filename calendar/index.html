@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>ELI Content Planner · North Central College</title>
+<meta name="description" content="Private content planning calendar for the English Language Institute at North Central College.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400&family=Roboto+Mono:wght@400;500;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23c10230'/%3E%3Ctext x='32' y='42' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='28' fill='white' text-anchor='middle'%3EELI%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<!-- ================= AUTH SCREEN ================= -->
+<div id="auth" class="auth" hidden>
+  <div class="auth-card">
+    <div class="auth-brand">
+      <img class="auth-logo" src="assets/ncc-logo-horizontal-tagline.svg" alt="North Central College 1861 · Naperville's University" width="282" height="74">
+      <div class="unit-label">English Language Institute</div>
+      <h1>ELI Content Planner</h1>
+      <p class="tagline">Improve your English. <span class="marker">Build your future.</span></p>
+    </div>
+    <div class="auth-tabs" role="tablist">
+      <button type="button" role="tab" data-tab="signin" class="active">Sign in</button>
+      <button type="button" role="tab" data-tab="signup">Create account</button>
+      <button type="button" role="tab" data-tab="reset">Forgot password</button>
+    </div>
+
+    <form id="form-signin" class="auth-form" data-panel="signin" novalidate>
+      <label>Email <input type="email" name="email" autocomplete="email" required></label>
+      <label>Password <input type="password" name="password" autocomplete="current-password" required></label>
+      <button type="submit" class="btn primary">Sign in</button>
+    </form>
+
+    <form id="form-signup" class="auth-form" data-panel="signup" hidden novalidate>
+      <p class="hint">This workspace is invite only. Use the email address the workspace owner invited.</p>
+      <label>Your name <input type="text" name="name" autocomplete="name" required placeholder="e.g. Kate"></label>
+      <label>Email <input type="email" name="email" autocomplete="email" required></label>
+      <label>Password <input type="password" name="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></label>
+      <button type="submit" class="btn primary">Create account</button>
+    </form>
+
+    <form id="form-reset" class="auth-form" data-panel="reset" hidden novalidate>
+      <p class="hint">We will email you a link to choose a new password.</p>
+      <label>Email <input type="email" name="email" autocomplete="email" required></label>
+      <button type="submit" class="btn primary">Send reset link</button>
+    </form>
+
+    <form id="form-newpass" class="auth-form" data-panel="newpass" hidden novalidate>
+      <p class="hint">Choose a new password for your account.</p>
+      <label>New password <input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
+      <button type="submit" class="btn primary">Save password</button>
+    </form>
+
+    <p id="auth-msg" class="auth-msg" role="status" aria-live="polite"></p>
+    <p class="auth-foot">Private workspace. Access is managed by the ELI team. <a href="https://elincc.site/" rel="noopener">elincc.site</a></p>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" class="app" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <img class="logo" src="assets/ncc-logo-horizontal-tagline.svg" alt="North Central College 1861 · Naperville's University" width="282" height="74">
+      <span class="divider" aria-hidden="true"></span>
+      <span class="name"><span class="unit-label">English Language Institute</span><strong>Content Planner</strong></span>
+    </div>
+    <nav class="views" aria-label="View">
+      <button type="button" class="seg active" data-view="month">Calendar</button>
+      <button type="button" class="seg" data-view="list">List</button>
+    </nav>
+    <div class="top-actions">
+      <span id="save-status" class="save-status" role="status" aria-live="polite" data-state="idle">All changes saved</span>
+      <span id="live-status" class="live-status" title="Live updates from other team members" data-state="connecting">● Live</span>
+      <button type="button" id="btn-new" class="btn primary">+ New post</button>
+      <button type="button" id="btn-guidelines" class="btn ghost" aria-controls="guidelines" aria-expanded="false">Brand rules</button>
+      <div class="menu-wrap">
+        <button type="button" id="btn-menu" class="btn ghost" aria-haspopup="true" aria-expanded="false">
+          <span id="me-name">Me</span> ▾
+        </button>
+        <div id="menu" class="menu" hidden>
+          <div class="menu-head"><strong id="me-name2"></strong><br><small id="me-email"></small><br><small id="me-role" class="pill"></small></div>
+          <button type="button" data-action="rename">Change my name</button>
+          <button type="button" data-action="admin" id="menu-admin">Members &amp; invitations</button>
+          <button type="button" data-action="export">Export JSON backup</button>
+          <button type="button" data-action="import">Import JSON…</button>
+          <button type="button" data-action="samples" id="menu-samples">Load 8 sample drafts</button>
+          <hr>
+          <button type="button" data-action="signout">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <section class="toolbar" aria-label="Navigation and filters">
+    <div class="month-nav">
+      <button type="button" id="prev" class="btn icon" aria-label="Previous month">‹</button>
+      <h2 id="month-label">Month</h2>
+      <button type="button" id="next" class="btn icon" aria-label="Next month">›</button>
+      <button type="button" id="today" class="btn ghost small">Today</button>
+      <select id="list-scope" aria-label="List scope" hidden>
+        <option value="month">This month</option>
+        <option value="all">All months</option>
+      </select>
+    </div>
+    <button type="button" id="btn-filters" class="btn ghost small filters-toggle" aria-expanded="false" aria-controls="filters">Search &amp; filters</button>
+    <div class="filters" id="filters">
+      <input type="search" id="f-q" placeholder="Search title, caption, notes…" aria-label="Search">
+      <select id="f-channel" aria-label="Channel"><option value="">All channels</option></select>
+      <select id="f-format" aria-label="Format">
+        <option value="">All formats</option>
+        <option value="single_image">Single image</option>
+        <option value="carousel">Carousel</option>
+        <option value="reel">Reel</option>
+        <option value="story">Story</option>
+      </select>
+      <select id="f-status" aria-label="Status">
+        <option value="">All statuses</option>
+        <option value="idea">Idea</option>
+        <option value="draft">Draft</option>
+        <option value="in_review">In Review</option>
+        <option value="approved">Approved</option>
+        <option value="scheduled">Scheduled</option>
+        <option value="published">Published</option>
+      </select>
+      <select id="f-topic" aria-label="Topic"><option value="">All topics</option></select>
+      <select id="f-assignee" aria-label="Assignee"><option value="">All assignees</option></select>
+      <button type="button" id="f-clear" class="btn ghost small" hidden>Clear filters</button>
+    </div>
+  </section>
+
+  <main class="main">
+    <div id="view-month" class="view-month">
+      <div class="weekdays" aria-hidden="true">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+      <div id="grid" class="grid" role="grid" aria-label="Monthly calendar"></div>
+      <p class="grid-hint">Drag a post to another day to reschedule it. On a phone or with the keyboard, open the post and use <em>Move to date</em>.</p>
+    </div>
+    <div id="view-list" class="view-list" hidden></div>
+    <div id="empty" class="empty" hidden>
+      <h3>No posts yet</h3>
+      <p>Create your first post, or load the eight ELI sample drafts to see how the planner works.</p>
+      <div class="row">
+        <button type="button" class="btn primary" data-action="new">+ New post</button>
+        <button type="button" class="btn ghost" data-action="samples">Load 8 sample drafts</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Brand & content rules -->
+  <aside id="guidelines" class="guidelines" hidden aria-label="Brand and content rules">
+    <div class="g-head">
+      <h3>Brand &amp; content rules</h3>
+      <button type="button" class="btn icon" data-action="close-guidelines" aria-label="Close">×</button>
+    </div>
+    <p class="core"><span class="unit-label">ELI core message</span><br><strong>Improve your English.</strong> <span class="marker">Build your future.</span></p>
+
+    <h4>ELI content rules</h4>
+    <ol>
+      <li>Large headlines and minimal text on artwork.</li>
+      <li>Consistent North Central College identity on every post.</li>
+      <li>Alternate the institutional palettes across posts: <span class="sw red"></span> red, <span class="sw black"></span> black, <span class="sw white"></span> white emphasis.</li>
+      <li>Instagram captions must be in English, contain <strong>no dashes</strong>, and include <strong>exactly three hashtags</strong> and <strong>two to three emojis</strong>.</li>
+      <li>Track both the <strong>3:4 artwork</strong> and the <strong>9:16 Story summary</strong>.</li>
+      <li><em>Scheduled</em> and <em>Published</em> are planning statuses. This planner does not post to social media.</li>
+    </ol>
+
+    <h4>Color palette (Section 3.1)</h4>
+    <div class="swatches">
+      <div class="swatch" style="background:#c10230;color:#fff"><b>Pantone 200 C</b>#c10230<br>primary · AA</div>
+      <div class="swatch" style="background:#ef4048;color:#fff"><b>Red 32 C</b>#ef4048<br>accent</div>
+      <div class="swatch" style="background:#a3dce9;color:#212121"><b>635 C</b>#a3dce9<br>accent</div>
+      <div class="swatch" style="background:#2692c6;color:#fff"><b>7689 C</b>#2692c6<br>accent</div>
+      <div class="swatch" style="background:#212121;color:#fff"><b>Rich Black</b>#212121<br>neutral · AA</div>
+    </div>
+    <ul>
+      <li>Pantone 200 leads. Its 20% and 40% shades, a 50% tint of 635 C, and 50% / 10% grays are allowed as supporting colors.</li>
+      <li>Only #c10230 and #212121 pass WCAG AA for text. Do not set body copy in the light blue or Red 32.</li>
+    </ul>
+
+    <h4>Typography (Section 3.2)</h4>
+    <ul>
+      <li><strong>GT Pressura</strong> (headlines, subheads, body), <strong>GT Pressura Mono</strong> (headlines and subheads only) and <strong>Newport</strong> (handwritten accent) are licensed to the Office of Marketing only.</li>
+      <li>Free alternatives for everyone: <strong>Roboto</strong>, <strong>Roboto Mono</strong> and <strong>Permanent Marker</strong>. System fallback: Arial, Courier New, Georgia.</li>
+      <li>Use the accent font sparingly: short words or call outs only, never body copy, never below 14 pt, slightly wider tracking.</li>
+      <li>Underline a key word in a headline for emphasis. Keep leading tight but not cramped.</li>
+    </ul>
+
+    <h4>Logo (Section 1)</h4>
+    <div class="logos">
+      <figure><img src="assets/ncc-logo-horizontal-tagline.svg" alt="Logo on white"><figcaption>Primary: red tower, black wordmark, gray 1861 on white or light backgrounds.</figcaption></figure>
+      <figure class="on-red"><img src="assets/ncc-logo-horizontal-tagline-white.svg" alt="White logo on red"><figcaption>White logo on red or black (or a dark photo with full legibility).</figcaption></figure>
+    </div>
+    <ul>
+      <li>Use the official files only. Never redraw, stretch, tilt, recolor, add shadows, rearrange, or mimic the wordmark with brand fonts.</li>
+      <li>Clear space all around: the width of “1861”. Minimum on screen: tower 25 px tall; use the wordmark alone when space is tight (stacked wordmark under 960 px wide).</li>
+      <li>Never place the white logo on a blue background or over a busy photo.</li>
+      <li><strong>International recruiting</strong> (most ELI audiences): use the <strong>International logo</strong> (“North Central 1861 · Naperville’s University”, without the word College). Request it from the Office of Institutional Communication, <a href="mailto:oic@noctrl.edu">oic@noctrl.edu</a>.</li>
+      <li>Files in this planner: <a href="assets/ncc-logo-horizontal-tagline.svg" download>horizontal + tagline (SVG)</a> · <a href="assets/ncc-logo-horizontal-tagline-white.svg" download>white version (SVG)</a> · <a href="assets/ncc-logo-horizontal.png" download>horizontal (PNG)</a> · <a href="assets/ncc-logo-stacked.png" download>stacked (PNG)</a></li>
+    </ul>
+
+    <h4>Design elements &amp; photos (Sections 3.4 to 3.7)</h4>
+    <ul>
+      <li>Approved accents: underlined key words, short handwritten notes and marks, pattern blocks, the “track” pattern, the Cardinal. Use them to frame, not to crowd.</li>
+      <li>Photos: real students, natural light. Duotones (635 C background + 7689 C foreground, or Pantone 200 on white) and single color overlays on black and white photos are on brand.</li>
+      <li>Tagline: “Naperville’s University”. Outreach units use the logo with tagline.</li>
+    </ul>
+
+    <p class="note" id="brand-assets-note"></p>
+    <p class="note">Caption checks in this planner only flag issues. They never rewrite anyone's copy.</p>
+    <p class="source">Source: North Central College Graphic Identity &amp; Messaging Guidelines (2026 edition, ELI Web/media/ncc-brand-guidelines.pdf) and the official logo files supplied by the ELI team.</p>
+  </aside>
+</div>
+
+<!-- ================= POST DRAWER ================= -->
+<div id="drawer-backdrop" class="backdrop" hidden></div>
+<aside id="drawer" class="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+  <form id="post-form" novalidate>
+    <div class="d-head">
+      <h3 id="drawer-title">Post</h3>
+      <div class="d-head-actions">
+        <span id="d-dirty" class="dirty" hidden>Unsaved changes</span>
+        <button type="button" class="btn icon" data-action="close" aria-label="Close">×</button>
+      </div>
+    </div>
+    <div id="d-conflict" class="conflict" hidden></div>
+
+    <div class="d-body">
+      <label class="full">Title <input type="text" name="title" required placeholder="Working title"></label>
+
+      <div class="grid2">
+        <label>Scheduled date <input type="date" name="scheduled_date" required></label>
+        <label>Time (optional) <input type="time" name="scheduled_time"></label>
+        <label>Channel <input type="text" name="channel" list="dl-channel"></label>
+        <label>Format
+          <select name="format">
+            <option value="single_image">Single image</option>
+            <option value="carousel">Carousel</option>
+            <option value="reel">Reel</option>
+            <option value="story">Story</option>
+          </select>
+        </label>
+        <label>Status
+          <select name="status">
+            <option value="idea">Idea</option>
+            <option value="draft">Draft</option>
+            <option value="in_review">In Review</option>
+            <option value="approved">Approved</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="published">Published</option>
+          </select>
+        </label>
+        <label>Topic / content pillar <input type="text" name="topic" list="dl-topic"></label>
+        <label>Assignee <input type="text" name="assignee" list="dl-assignee" placeholder="Who owns this post"></label>
+        <fieldset class="palette-set">
+          <legend>Institutional palette</legend>
+          <label class="radio" title="Pantone 200 C · #c10230"><input type="radio" name="palette" value="red"> <span class="sw red"></span> Red emphasis</label>
+          <label class="radio" title="Rich Black · #212121"><input type="radio" name="palette" value="black"> <span class="sw black"></span> Black emphasis</label>
+          <label class="radio" title="White background, red and black type"><input type="radio" name="palette" value="white"> <span class="sw white"></span> White emphasis</label>
+        </fieldset>
+      </div>
+
+      <fieldset class="ready-set">
+        <legend>Readiness</legend>
+        <label class="check"><input type="checkbox" name="ready_3x4"> 3:4 artwork ready</label>
+        <label class="check"><input type="checkbox" name="ready_9x16"> 9:16 Story summary ready</label>
+      </fieldset>
+
+      <label class="full">
+        <span class="label-row">Final caption <button type="button" class="btn ghost small" data-action="copy-caption">Copy caption</button></span>
+        <textarea name="caption" rows="7" placeholder="Full caption exactly as it will be posted"></textarea>
+      </label>
+      <ul id="caption-checks" class="checks" aria-live="polite"></ul>
+
+      <label class="full">Creative notes <textarea name="notes" rows="3" placeholder="Artwork direction, references, reminders"></textarea></label>
+      <label class="full">Asset links <textarea name="asset_links" rows="2" placeholder="One link per line (Drive, Canva, Dropbox…)"></textarea></label>
+
+      <div class="move-row">
+        <label>Move to date <input type="date" id="move-date" aria-label="Move to date"></label>
+        <button type="button" class="btn ghost small" data-action="move">Move</button>
+      </div>
+
+      <p id="d-meta" class="meta"></p>
+
+      <section class="comments" id="comments-section">
+        <h4>Team comments</h4>
+        <ul id="comments"></ul>
+        <div class="comment-add">
+          <textarea id="comment-body" rows="2" placeholder="Leave a note for the team"></textarea>
+          <button type="button" class="btn ghost small" data-action="add-comment">Add comment</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="d-foot">
+      <div class="left">
+        <button type="button" class="btn ghost small" data-action="duplicate">Duplicate</button>
+        <button type="button" class="btn danger small" data-action="delete">Delete</button>
+      </div>
+      <div class="right">
+        <button type="button" class="btn ghost" data-action="close">Close</button>
+        <button type="submit" class="btn primary" id="btn-save">Save</button>
+      </div>
+    </div>
+  </form>
+</aside>
+
+<datalist id="dl-channel"></datalist>
+<datalist id="dl-topic"></datalist>
+<datalist id="dl-assignee"></datalist>
+
+<!-- ================= GENERIC MODAL ================= -->
+<div id="modal-backdrop" class="backdrop" hidden></div>
+<div id="modal" class="modal" hidden role="dialog" aria-modal="true"></div>
+
+<!-- ================= TOASTS ================= -->
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<input type="file" id="import-file" accept="application/json,.json" hidden>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
