@@ -1,9 +1,9 @@
 // ============================================================
 // ELI Content Planner — application
 // ============================================================
-import { CONFIG } from './config.js?v=202609091842';
-import { SAMPLE_POSTS } from './samples.js?v=202609091842';
-import { createBackend, ConflictError, NotFoundError, defaultPost, pickPostFields, uuid } from './backend.js?v=202609091842';
+import { CONFIG } from './config.js?v=202609091848';
+import { SAMPLE_POSTS } from './samples.js?v=202609091848';
+import { createBackend, ConflictError, NotFoundError, defaultPost, pickPostFields, uuid } from './backend.js?v=202609091848';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -401,7 +401,6 @@ function renderAgenda(list) {
       </button>`).join('') : '<p class="hint agenda-empty">No posts on this day. Tap + Post to add one, or use Move to date inside a post.</p>'}`;
 }
 
-const isVideo = (p) => /video|clip|reel|footage/i.test(p.photo_brief || '') || p.format === 'reel';
 function shotItems() {
   return [...state.posts.values()]
     .filter((p) => p.photo_status && p.photo_status !== 'none')
@@ -434,7 +433,7 @@ function renderShots() {
         <header><h4>${esc(g)}</h4><span class="by">first needed ${shortDate(list[0].scheduled_date)}</span><span class="count">${list.reduce((n, p) => n + (p.photo_qty || 1), 0)} shots · ${list.length} post${list.length === 1 ? '' : 's'}</span></header>
         ${list.map((p) => `
           <div class="shot ${p.photo_status}" data-id="${p.id}">
-            <span class="qty">${p.photo_qty || 1} × ${isVideo(p) ? '🎬' : '📷'}</span>
+            <span class="qty">${p.photo_qty || 1} × 📷</span>
             <div><div class="what">${esc(p.photo_brief || 'No brief yet.')}</div>
               <div class="ctx">For: <span class="t">${esc(p.title)}</span> · ${shortDate(p.scheduled_date)} · ${FORMAT_LABEL[p.format]}${p.series ? ' · ' + esc(p.series) : ''}</div></div>
             <label class="done"><input type="checkbox" data-delivered="${p.id}" ${p.photo_status === 'delivered' ? 'checked' : ''}> Delivered</label>
@@ -448,7 +447,7 @@ function shotsAsText() {
   lines.push('SUMMARY: ' + [...groups.entries()].map(([g, l]) => `${l.reduce((n, p) => n + (p.photo_qty || 1), 0)} × ${g}`).join(' · '), '');
   for (const [g, list] of groups) {
     lines.push(`== ${g.toUpperCase()} (${list.reduce((n, p) => n + (p.photo_qty || 1), 0)} shots, first needed ${shortDate(list[0].scheduled_date)})`);
-    for (const p of list) lines.push(`- ${p.photo_qty || 1} × ${isVideo(p) ? 'video' : 'photo'}: ${p.photo_brief || 'No brief yet.'}  [for: ${p.title}, ${shortDate(p.scheduled_date)}${p.photo_status === 'delivered' ? ', delivered' : ''}]`);
+    for (const p of list) lines.push(`- ${p.photo_qty || 1} × photo: ${p.photo_brief || 'No brief yet.'}  [for: ${p.title}, ${shortDate(p.scheduled_date)}${p.photo_status === 'delivered' ? ', delivered' : ''}]`);
     lines.push('');
   }
   return lines.join('\n');
