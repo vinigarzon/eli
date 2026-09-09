@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400&family=Roboto+Mono:wght@400;500;700&family=Permanent+Marker&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=202609091842">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23c10230'/%3E%3Ctext x='32' y='42' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='28' fill='white' text-anchor='middle'%3EELI%3C/text%3E%3C/svg%3E">
 </head>
 <body>
@@ -71,6 +71,7 @@
     <nav class="views" aria-label="View">
       <button type="button" class="seg active" data-view="month">Calendar</button>
       <button type="button" class="seg" data-view="list">List</button>
+      <button type="button" class="seg" data-view="shots">📷 Shot list</button>
     </nav>
     <div class="top-actions">
       <span id="save-status" class="save-status" role="status" aria-live="polite" data-state="idle">All changes saved</span>
@@ -154,6 +155,7 @@
       <p class="grid-hint">Drag a post to another day to reschedule it. On a phone or with the keyboard, open the post and use <em>Move to date</em>.</p>
     </div>
     <div id="view-list" class="view-list" hidden></div>
+    <div id="view-shots" class="view-shots" hidden></div>
     <div id="empty" class="empty" hidden>
       <h3>No posts yet</h3>
       <p>Create your first post, or load the eight ELI sample drafts to see how the planner works.</p>
@@ -300,6 +302,10 @@
             <option value="delivered">Delivered</option>
           </select>
         </label>
+        <div class="grid2">
+          <label>Place / subject (for grouping) <input type="text" name="photo_group" list="dl-photo-group" placeholder="e.g. ELI office, Campus, Students"></label>
+          <label>How many shots <input type="number" name="photo_qty" min="0" max="99" step="1" value="1"></label>
+        </div>
         <label class="full">What to shoot <textarea name="photo_brief" rows="3" placeholder="Subject, location, orientation (3:4 and 9:16), mood, who must sign a consent form"></textarea></label>
       </fieldset>
       <label class="full">Creative notes <textarea name="notes" rows="3" placeholder="Artwork direction, references, reminders"></textarea></label>
@@ -339,6 +345,7 @@
 <datalist id="dl-topic"></datalist>
 <datalist id="dl-assignee"></datalist>
 <datalist id="dl-series"></datalist>
+<datalist id="dl-photo-group"></datalist>
 
 <!-- ================= GENERIC MODAL ================= -->
 <div id="modal-backdrop" class="backdrop" hidden></div>
@@ -349,6 +356,6 @@
 
 <input type="file" id="import-file" accept="application/json,.json" hidden>
 
-<script type="module" src="app.js"></script>
+<script type="module" src="app.js?v=202609091842"></script>
 </body>
 </html>

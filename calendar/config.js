@@ -33,6 +33,9 @@ export const CONFIG = {
     'Community & Alumni',
   ],
 
+  // Suggested places / subjects for grouping photo requests in the Shot list
+  PHOTO_GROUPS: ['ELI office', 'ELI team', 'Instructors & classrooms', 'Students', 'Campus', 'Downtown Naperville', 'Homecoming', 'Chippy'],
+
   // Local demo mode: in-browser fake backend (no Supabase). Also enabled with ?mock=1
   MOCK: false,
 };

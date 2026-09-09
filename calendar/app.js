@@ -1,9 +1,9 @@
 // ============================================================
 // ELI Content Planner — application
 // ============================================================
-import { CONFIG } from './config.js';
-import { SAMPLE_POSTS } from './samples.js';
-import { createBackend, ConflictError, NotFoundError, defaultPost, pickPostFields, uuid } from './backend.js';
+import { CONFIG } from './config.js?v=202609091842';
+import { SAMPLE_POSTS } from './samples.js?v=202609091842';
+import { createBackend, ConflictError, NotFoundError, defaultPost, pickPostFields, uuid } from './backend.js?v=202609091842';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -26,6 +26,7 @@ const state = {
   filters: { q: '', channel: '', format: '', status: '', topic: '', assignee: '', series: '' },
   quick: '',
   selectedDay: '', // mobile agenda
+  shotsIncludeDelivered: false,
   open: null, // { id, base (snapshot of saved row), dirty }
   saving: 0,
   undoStack: [],
@@ -303,9 +304,12 @@ function render() {
   $('#empty [data-action=samples]').hidden = state.profile.role !== 'owner';
   $$('.qf').forEach((b) => b.classList.toggle('active', b.dataset.quick === state.quick));
   $('#f-clear').hidden = !(filtersActive() || state.quick);
-  if (state.view === 'month') { $('#view-month').hidden = false; $('#view-list').hidden = true; renderMonth(posts); }
-  else { $('#view-month').hidden = true; $('#view-list').hidden = false; renderList(state.listAll ? posts : posts.filter((p) => monthOf(p.scheduled_date) === state.month)); }
-  $('#list-scope').hidden = state.view !== 'month' ? false : true;
+  $('#view-month').hidden = state.view !== 'month'; $('#view-list').hidden = state.view !== 'list'; $('#view-shots').hidden = state.view !== 'shots';
+  if (state.view === 'month') renderMonth(posts);
+  else if (state.view === 'list') renderList(state.listAll ? posts : posts.filter((p) => monthOf(p.scheduled_date) === state.month));
+  else renderShots();
+  $('#list-scope').hidden = state.view !== 'list';
+  $('.toolbar').hidden = state.view === 'shots'; $('.quick').hidden = state.view === 'shots';
 }
 
 function renderDatalists() {
@@ -320,6 +324,7 @@ function renderDatalists() {
   const series = vals('series');
   fill('#f-channel', channels, 'All channels'); fill('#f-topic', topics, 'All topics'); fill('#f-assignee', assignees, 'All assignees'); fill('#f-series', series, 'All series');
   $('#dl-series').innerHTML = series.map((v) => `<option value="${esc(v)}">`).join('');
+  $('#dl-photo-group').innerHTML = vals('photo_group', CONFIG.PHOTO_GROUPS || []).map((v) => `<option value="${esc(v)}">`).join('');
   $('#dl-channel').innerHTML = channels.map((v) => `<option value="${esc(v)}">`).join('');
   $('#dl-topic').innerHTML = topics.map((v) => `<option value="${esc(v)}">`).join('');
   $('#dl-assignee').innerHTML = assignees.map((v) => `<option value="${esc(v)}">`).join('');
@@ -394,6 +399,65 @@ function renderAgenda(list) {
         <span class="a-title">${esc(p.title || '(untitled)')}</span>
         <span class="a-meta">${FORMAT_LABEL[p.format]} · ${esc(p.channel)}${p.assignee ? ' · ' + esc(p.assignee) : ''}${p.photo_status && p.photo_status !== 'none' ? ` · 📷 ${esc(PHOTO_LABEL[p.photo_status])}` : ''}</span>
       </button>`).join('') : '<p class="hint agenda-empty">No posts on this day. Tap + Post to add one, or use Move to date inside a post.</p>'}`;
+}
+
+const isVideo = (p) => /video|clip|reel|footage/i.test(p.photo_brief || '') || p.format === 'reel';
+function shotItems() {
+  return [...state.posts.values()]
+    .filter((p) => p.photo_status && p.photo_status !== 'none')
+    .filter((p) => state.shotsIncludeDelivered || p.photo_status !== 'delivered')
+    .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
+}
+function renderShots() {
+  const items = shotItems();
+  const groups = new Map();
+  for (const p of items) { const g = p.photo_group || 'Other'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(p); }
+  const ordered = [...groups.entries()].sort((a, b) => a[1][0].scheduled_date.localeCompare(b[1][0].scheduled_date));
+  const total = items.reduce((n, p) => n + (p.photo_qty || 1), 0);
+  const pending = items.filter((p) => p.photo_status !== 'delivered');
+  const el = $('#view-shots');
+  el.innerHTML = `
+    <div class="shots-head">
+      <div><h3>Shot list</h3><div class="sub">Grouped by place or subject so several posts can be covered in one trip. Only the photo information is shown.</div></div>
+      <div class="shots-actions">
+        <label><input type="checkbox" id="shots-delivered" ${state.shotsIncludeDelivered ? 'checked' : ''}> Include delivered</label>
+        <button type="button" class="btn ghost small" data-action="shots-copy">Copy as text</button>
+        <button type="button" class="btn ghost small" data-action="shots-print">Print / Save PDF</button>
+      </div>
+    </div>
+    <div class="shots-summary">
+      <div class="big">${total} shot${total === 1 ? '' : 's'} across ${ordered.length} place${ordered.length === 1 ? '' : 's'}${pending.length !== items.length ? ` · ${pending.reduce((n, p) => n + (p.photo_qty || 1), 0)} still pending` : ''}</div>
+      <ul>${ordered.map(([g, list]) => `<li><b>${list.reduce((n, p) => n + (p.photo_qty || 1), 0)}</b> ${esc(g)}</li>`).join('')}</ul>
+    </div>
+    ${ordered.length ? ordered.map(([g, list]) => `
+      <section class="shot-group">
+        <header><h4>${esc(g)}</h4><span class="by">first needed ${shortDate(list[0].scheduled_date)}</span><span class="count">${list.reduce((n, p) => n + (p.photo_qty || 1), 0)} shots · ${list.length} post${list.length === 1 ? '' : 's'}</span></header>
+        ${list.map((p) => `
+          <div class="shot ${p.photo_status}" data-id="${p.id}">
+            <span class="qty">${p.photo_qty || 1} × ${isVideo(p) ? '🎬' : '📷'}</span>
+            <div><div class="what">${esc(p.photo_brief || 'No brief yet.')}</div>
+              <div class="ctx">For: <span class="t">${esc(p.title)}</span> · ${shortDate(p.scheduled_date)} · ${FORMAT_LABEL[p.format]}${p.series ? ' · ' + esc(p.series) : ''}</div></div>
+            <label class="done"><input type="checkbox" data-delivered="${p.id}" ${p.photo_status === 'delivered' ? 'checked' : ''}> Delivered</label>
+          </div>`).join('')}
+      </section>`).join('') : '<p class="hint">No photo requests yet. Set “Photo needed” on a post and give it a place or subject.</p>'}`;
+}
+function shotsAsText() {
+  const items = shotItems(); const groups = new Map();
+  for (const p of items) { const g = p.photo_group || 'Other'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(p); }
+  const lines = [`ELI CONTENT PLANNER · SHOT LIST (${todayISO()})`, ''];
+  lines.push('SUMMARY: ' + [...groups.entries()].map(([g, l]) => `${l.reduce((n, p) => n + (p.photo_qty || 1), 0)} × ${g}`).join(' · '), '');
+  for (const [g, list] of groups) {
+    lines.push(`== ${g.toUpperCase()} (${list.reduce((n, p) => n + (p.photo_qty || 1), 0)} shots, first needed ${shortDate(list[0].scheduled_date)})`);
+    for (const p of list) lines.push(`- ${p.photo_qty || 1} × ${isVideo(p) ? 'video' : 'photo'}: ${p.photo_brief || 'No brief yet.'}  [for: ${p.title}, ${shortDate(p.scheduled_date)}${p.photo_status === 'delivered' ? ', delivered' : ''}]`);
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+async function setDelivered(id, delivered) {
+  const p = state.posts.get(id); if (!p) return;
+  markSaving();
+  try { const saved = await state.backend.updatePost(id, p.version, { photo_status: delivered ? 'delivered' : 'needed' }); state.posts.set(id, saved); markSaved(); render(); }
+  catch (err) { if (err instanceof ConflictError) { state.posts.set(id, err.latest); markSaved(); render(); toast('This post was just changed by someone else. Try again.', { error: true }); } else markError('Could not update: ' + err.message); }
 }
 
 function renderList(posts) {
@@ -483,6 +547,7 @@ function readForm() {
     assignee: f.assignee.value.trim(), palette: f.palette.value || 'red', ready_3x4: f.ready_3x4.checked, ready_9x16: f.ready_9x16.checked,
     caption: f.caption.value, notes: f.notes.value, asset_links: f.asset_links.value,
     series: f.series.value.trim(), photo_brief: f.photo_brief.value, photo_status: f.photo_status.value || 'none',
+    photo_group: f.photo_group.value.trim(), photo_qty: Math.max(0, Math.min(99, parseInt(f.photo_qty.value, 10) || 0)),
   };
 }
 function fillForm(p) {
@@ -493,6 +558,7 @@ function fillForm(p) {
   f.ready_3x4.checked = !!p.ready_3x4; f.ready_9x16.checked = !!p.ready_9x16;
   f.caption.value = p.caption || ''; f.notes.value = p.notes || ''; f.asset_links.value = p.asset_links || '';
   f.series.value = p.series || ''; f.photo_brief.value = p.photo_brief || ''; f.photo_status.value = p.photo_status || 'none';
+  f.photo_group.value = p.photo_group || ''; f.photo_qty.value = p.photo_qty ?? 1;
   $('#move-date').value = p.scheduled_date || '';
   renderChecks();
 }
@@ -683,12 +749,14 @@ function normalizeImported(raw) {
     o.series = p.series || '';
     o.photo_brief = p.photo_brief || '';
     o.photo_status = ['none', 'needed', 'requested', 'delivered'].includes(p.photo_status) ? p.photo_status : 'none';
+    o.photo_group = p.photo_group || '';
+    o.photo_qty = Number.isFinite(+p.photo_qty) ? Math.max(0, Math.min(99, +p.photo_qty)) : 1;
     o.version = p.version;
     return o;
   }).filter((p) => p.title || p.caption);
   return { posts: norm, comments };
 }
-function samePost(a, b) { return ['title', 'scheduled_date', 'scheduled_time', 'channel', 'format', 'status', 'topic', 'assignee', 'palette', 'ready_3x4', 'ready_9x16', 'caption', 'notes', 'asset_links', 'series', 'photo_brief', 'photo_status'].every((k) => (a[k] ?? null) === (b[k] ?? null) || (k === 'scheduled_time' && (a[k] || '').slice(0, 5) === (b[k] || '').slice(0, 5))); }
+function samePost(a, b) { return ['title', 'scheduled_date', 'scheduled_time', 'channel', 'format', 'status', 'topic', 'assignee', 'palette', 'ready_3x4', 'ready_9x16', 'caption', 'notes', 'asset_links', 'series', 'photo_brief', 'photo_status', 'photo_group', 'photo_qty'].every((k) => (a[k] ?? null) === (b[k] ?? null) || (k === 'scheduled_time' && (a[k] || '').slice(0, 5) === (b[k] || '').slice(0, 5))); }
 
 async function importJSON(file) {
   let raw;
@@ -825,6 +893,16 @@ function bindApp() {
     const add = e.target.closest('[data-new-date]'); if (add) { newPost(add.dataset.newDate); return; }
     const chip = e.target.closest('.chip'); if (chip) { openPost(chip.dataset.id); return; }
     const sel = e.target.closest('[data-select]'); if (sel) { state.selectedDay = sel.dataset.select; if (monthOf(state.selectedDay) !== state.month) state.month = monthOf(state.selectedDay); render(); }
+  });
+  $('#view-shots').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-action]');
+    if (b && b.dataset.action === 'shots-copy') { copyText(shotsAsText(), 'Shot list copied. Paste it in an email or a note.'); return; }
+    if (b && b.dataset.action === 'shots-print') { window.print(); return; }
+    const t = e.target.closest('.shot .ctx .t'); if (t) openPost(t.closest('.shot').dataset.id);
+  });
+  $('#view-shots').addEventListener('change', (e) => {
+    if (e.target.id === 'shots-delivered') { state.shotsIncludeDelivered = e.target.checked; render(); return; }
+    const cb = e.target.closest('[data-delivered]'); if (cb) setDelivered(cb.dataset.delivered, cb.checked);
   });
   $('#agenda').addEventListener('click', (e) => {
     const add = e.target.closest('[data-new-date]'); if (add) { newPost(add.dataset.newDate); return; }
