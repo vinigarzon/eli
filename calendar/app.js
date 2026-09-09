@@ -25,6 +25,7 @@ const state = {
   month: '', // YYYY-MM
   filters: { q: '', channel: '', format: '', status: '', topic: '', assignee: '', series: '' },
   quick: '',
+  selectedDay: '', // mobile agenda
   open: null, // { id, base (snapshot of saved row), dirty }
   saving: 0,
   undoStack: [],
@@ -278,6 +279,7 @@ function visiblePosts() {
     (!q || [p.title, p.caption, p.notes, p.topic, p.assignee, p.channel, p.series, p.photo_brief].some((v) => (v || '').toLowerCase().includes(q)))
   ).sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date) || (a.scheduled_time || '').localeCompare(b.scheduled_time || '') || a.title.localeCompare(b.title));
 }
+const isMobile = () => window.matchMedia('(max-width: 720px)').matches;
 function filtersActive() { return Object.values(state.filters).some(Boolean); }
 function weekRange(isoDate) { const start = addDays(isoDate, -dow(isoDate)); return [start, addDays(start, 6)]; }
 function quickMatch(p) {
@@ -343,6 +345,14 @@ function renderMonth(posts) {
   const byDate = new Map();
   for (const p of posts) { if (!byDate.has(p.scheduled_date)) byDate.set(p.scheduled_date, []); byDate.get(p.scheduled_date).push(p); }
   const today = todayISO();
+  const mobile = isMobile();
+  if (mobile) {
+    const sel = state.selectedDay;
+    if (!sel || monthOf(sel) !== state.month) {
+      const firstWithPosts = posts.map((p) => p.scheduled_date).find((x) => monthOf(x) === state.month);
+      state.selectedDay = monthOf(today) === state.month ? today : (firstWithPosts || first);
+    }
+  }
   let html = '';
   for (let d = start; d <= end; d = addDays(d, 1)) {
     if (dow(d) === 0) {
@@ -351,12 +361,39 @@ function renderMonth(posts) {
     }
     const inMonth = monthOf(d) === state.month;
     const list = byDate.get(d) || [];
+    if (mobile) {
+      const dots = list.slice(0, 4).map((p) => `<i class="dot pal-${p.palette}"></i>`).join('') + (list.length > 4 ? `<i class="more">+${list.length - 4}</i>` : '');
+      html += `<button type="button" class="day mini${inMonth ? '' : ' other'}${d === today ? ' today' : ''}${d === state.selectedDay ? ' selected' : ''}" data-date="${d}" data-select="${d}" role="gridcell" aria-label="${longDate(d)}, ${list.length} post${list.length === 1 ? '' : 's'}" aria-pressed="${d === state.selectedDay}">
+        <span class="dnum">${parts(d).d}</span><span class="dots">${dots}</span>
+      </button>`;
+      continue;
+    }
     html += `<div class="day${inMonth ? '' : ' other'}${d === today ? ' today' : ''}" data-date="${d}" role="gridcell" aria-label="${longDate(d)}, ${list.length} post${list.length === 1 ? '' : 's'}">
       <div class="dnum"><span>${parts(d).d}</span><button type="button" class="add" data-new-date="${d}" aria-label="New post on ${longDate(d)}" title="New post">+</button></div>
       <div class="chips">${inMonth ? list.map(chipHTML).join('') : (list.length ? `<span class="hint" style="font-size:10px">${list.length} post${list.length === 1 ? '' : 's'}</span>` : '')}</div>
     </div>`;
   }
   $('#grid').innerHTML = html;
+  renderAgenda(mobile ? (byDate.get(state.selectedDay) || []) : null);
+}
+
+function renderAgenda(list) {
+  const el = $('#agenda');
+  if (list === null) { el.hidden = true; el.innerHTML = ''; return; }
+  const d = state.selectedDay; const today = todayISO();
+  const series = [...new Set([...state.posts.values()].filter((p) => { const [s, e] = weekRange(d); return p.scheduled_date >= s && p.scheduled_date <= e && p.series; }).map((p) => p.series))];
+  el.hidden = false;
+  el.innerHTML = `
+    <div class="agenda-head">
+      <div><strong>${d === today ? 'Today · ' : ''}${longDate(d)}</strong>${series.length ? `<div class="agenda-series">${series.map((s) => `<span class="series-tag">${esc(s)}</span>`).join('')}</div>` : ''}</div>
+      <button type="button" class="btn primary small" data-new-date="${d}">+ Post</button>
+    </div>
+    ${list.length ? list.map((p) => `
+      <button type="button" class="agenda-item pal-${p.palette}" data-id="${p.id}">
+        <span class="a-top"><span class="time">${p.scheduled_time ? fmtTime(p.scheduled_time) : 'No time'}</span><span class="st s-${p.status}">${STATUS_LABEL[p.status]}</span></span>
+        <span class="a-title">${esc(p.title || '(untitled)')}</span>
+        <span class="a-meta">${FORMAT_LABEL[p.format]} · ${esc(p.channel)}${p.assignee ? ' · ' + esc(p.assignee) : ''}${p.photo_status && p.photo_status !== 'none' ? ` · 📷 ${esc(PHOTO_LABEL[p.photo_status])}` : ''}</span>
+      </button>`).join('') : '<p class="hint agenda-empty">No posts on this day. Tap + Post to add one, or use Move to date inside a post.</p>'}`;
 }
 
 function renderList(posts) {
@@ -749,7 +786,7 @@ function bindApp() {
   $$('.seg').forEach((b) => b.onclick = () => { state.view = b.dataset.view; render(); });
   $('#prev').onclick = () => { state.month = shiftMonth(state.month, -1); render(); };
   $('#next').onclick = () => { state.month = shiftMonth(state.month, 1); render(); };
-  $('#today').onclick = () => { state.month = monthOf(todayISO()); render(); };
+  $('#today').onclick = () => { state.month = monthOf(todayISO()); state.selectedDay = todayISO(); render(); };
   $('#btn-filters').onclick = () => { const f = $('#filters'); f.classList.toggle('open'); $('#btn-filters').setAttribute('aria-expanded', String(f.classList.contains('open'))); };
   $('#list-scope').onchange = (e) => { state.listAll = e.target.value === 'all'; render(); };
   $('#btn-new').onclick = () => newPost();
@@ -786,8 +823,14 @@ function bindApp() {
   // grid / list clicks
   $('#grid').addEventListener('click', (e) => {
     const add = e.target.closest('[data-new-date]'); if (add) { newPost(add.dataset.newDate); return; }
-    const chip = e.target.closest('.chip'); if (chip) openPost(chip.dataset.id);
+    const chip = e.target.closest('.chip'); if (chip) { openPost(chip.dataset.id); return; }
+    const sel = e.target.closest('[data-select]'); if (sel) { state.selectedDay = sel.dataset.select; if (monthOf(state.selectedDay) !== state.month) state.month = monthOf(state.selectedDay); render(); }
   });
+  $('#agenda').addEventListener('click', (e) => {
+    const add = e.target.closest('[data-new-date]'); if (add) { newPost(add.dataset.newDate); return; }
+    const item = e.target.closest('.agenda-item'); if (item) openPost(item.dataset.id);
+  });
+  window.matchMedia('(max-width: 720px)').addEventListener('change', () => render());
   $('#grid').addEventListener('dblclick', (e) => { const day = e.target.closest('.day'); if (day && !e.target.closest('.chip')) newPost(day.dataset.date); });
   $('#view-list').addEventListener('click', (e) => {
     const c = e.target.closest('[data-copy]'); if (c) { copyText(state.posts.get(c.dataset.copy).caption); return; }
